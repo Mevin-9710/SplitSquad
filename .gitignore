@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+
+# Auth files (WhatsApp session - don't commit)
+.auth/
+auth_info*/
+
+# Database
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Logs
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+public/css/style.css
