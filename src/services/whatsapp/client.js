@@ -1,4 +1,5 @@
-import { Client, LocalAuth } from 'whatsapp-web.js';
+import wwebjs from 'whatsapp-web.js';
+const { Client, LocalAuth } = wwebjs;
 import { config } from '../../config/index.js';
 import logger from '../../utils/logger.js';
 import { existsSync, mkdirSync } from 'fs';
