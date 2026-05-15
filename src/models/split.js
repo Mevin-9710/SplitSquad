@@ -20,13 +20,11 @@ export function createSplit(description, totalAmount, createdBy) {
   const id = uuidv4();
   const createdAt = new Date().toISOString();
 
-  const stmt = db.prepare(`
-    INSERT INTO splits (id, description, total_amount, created_by, created_at, status)
-    VALUES (?, ?, ?, ?, ?, 'active')
-  `);
-
   try {
-    stmt.run(id, description, totalAmount, createdBy, createdAt);
+    db.run(`
+      INSERT INTO splits (id, description, total_amount, created_by, created_at, status)
+      VALUES (?, ?, ?, ?, ?, 'active')
+    `, [id, description, totalAmount, createdBy, createdAt]);
     logger.debug('Created new split', { id, description, totalAmount, createdBy });
     return id;
   } catch (error) {
@@ -43,27 +41,30 @@ export function createSplit(description, totalAmount, createdBy) {
 export function getSplitById(id) {
   const db = getDatabase();
 
-  const splitStmt = db.prepare(`
-    SELECT id, description, total_amount, created_by, created_at, status
-    FROM splits
-    WHERE id = ?
-  `);
-
-  const participantsStmt = db.prepare(`
-    SELECT id, split_id, name, phone, amount, settled, settled_at
-    FROM participants
-    WHERE split_id = ?
-    ORDER BY created.rowid
-  `);
-
   try {
-    const split = splitStmt.get(id);
+    const splitResult = db.exec(`
+      SELECT id, description, total_amount, created_by, created_at, status
+      FROM splits
+      WHERE id = ?
+    `, [id]);
 
-    if (!split) {
+    if (splitResult.length === 0 || splitResult[0].values.length === 0) {
       return null;
     }
 
-    const participants = participantsStmt.all(id);
+    const columns = splitResult[0].columns;
+    const split = objectFromRow(columns, splitResult[0].values[0]);
+
+    const participantsResult = db.exec(`
+      SELECT id, split_id, name, phone, amount, settled, settled_at
+      FROM participants
+      WHERE split_id = ?
+      ORDER BY rowid
+    `, [id]);
+
+    const participants = participantsResult.length > 0
+      ? participantsResult[0].values.map(row => objectFromRow(participantsResult[0].columns, row))
+      : [];
 
     return {
       ...split,
@@ -83,29 +84,37 @@ export function getSplitById(id) {
 export function getHistoryByPhone(phone) {
   const db = getDatabase();
 
-  const splitsStmt = db.prepare(`
-    SELECT DISTINCT s.id, s.description, s.total_amount, s.created_by, s.created_at, s.status
-    FROM splits s
-    LEFT JOIN participants p ON s.id = p.split_id
-    WHERE s.created_by = ? OR p.phone = ?
-    ORDER BY s.created_at DESC
-    LIMIT 50
-  `);
-
   try {
-    const splits = splitsStmt.all(phone, phone);
+    const splitsResult = db.exec(`
+      SELECT DISTINCT s.id, s.description, s.total_amount, s.created_by, s.created_at, s.status
+      FROM splits s
+      LEFT JOIN participants p ON s.id = p.split_id
+      WHERE s.created_by = ? OR p.phone = ?
+      ORDER BY s.created_at DESC
+      LIMIT 50
+    `, [phone, phone]);
+
+    if (splitsResult.length === 0) {
+      return [];
+    }
+
+    const columns = splitsResult[0].columns;
+    const splits = splitsResult[0].values.map(row => objectFromRow(columns, row));
 
     // Get participants for each split
-    const participantsStmt = db.prepare(`
-      SELECT id, split_id, name, phone, amount, settled, settled_at
-      FROM participants
-      WHERE split_id = ?
-    `);
+    return splits.map(split => {
+      const participantsResult = db.exec(`
+        SELECT id, split_id, name, phone, amount, settled, settled_at
+        FROM participants
+        WHERE split_id = ?
+      `, [split.id]);
 
-    return splits.map(split => ({
-      ...split,
-      participants: participantsStmt.all(split.id),
-    }));
+      const participants = participantsResult.length > 0
+        ? participantsResult[0].values.map(row => objectFromRow(participantsResult[0].columns, row))
+        : [];
+
+      return { ...split, participants };
+    });
   } catch (error) {
     logger.error('Failed to get history by phone', { phone, error: error.message });
     throw error;
@@ -120,15 +129,25 @@ export function getHistoryByPhone(phone) {
  */
 export function updateSplitStatus(id, status) {
   const db = getDatabase();
-  const stmt = db.prepare(`UPDATE splits SET status = ? WHERE id = ?`);
 
   try {
-    const result = stmt.run(status, id);
-    return result.changes > 0;
+    db.run(`UPDATE splits SET status = ? WHERE id = ?`, [status, id]);
+    return true;
   } catch (error) {
     logger.error('Failed to update split status', { id, status, error: error.message });
     throw error;
   }
+}
+
+/**
+ * Helper to convert sql.js result row to object
+ */
+function objectFromRow(columns, values) {
+  const obj = {};
+  columns.forEach((col, i) => {
+    obj[col] = values[i];
+  });
+  return obj;
 }
 
 export default {

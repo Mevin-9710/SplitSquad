@@ -86,7 +86,7 @@ async function bootstrap() {
   // 1. Initialize database
   logger.info('Initializing database...');
   try {
-    initDatabase();
+    await initDatabase();
     initSchema();
     logger.info('Database initialized successfully');
   } catch (error) {

@@ -1,22 +1,23 @@
-import Database from 'better-sqlite3';
+import initSqlJs from 'sql.js';
 import { dirname } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
 
 let db = null;
+let dbPath = null;
 
 /**
- * Initialize SQLite database connection
- * @returns {Database.Database} SQLite database instance
+ * Initialize SQLite database connection using sql.js
+ * @returns {Promise<Database>} SQLite database instance
  */
-export function initDatabase() {
+export async function initDatabase() {
   if (db) {
     logger.warn('Database already initialized');
     return db;
   }
 
-  const dbPath = config.DATABASE_PATH;
+  dbPath = config.DATABASE_PATH;
   const dbDir = dirname(dbPath);
 
   // Ensure database directory exists
@@ -26,11 +27,35 @@ export function initDatabase() {
   }
 
   try {
-    db = new Database(dbPath);
+    // Initialize sql.js
+    const SQL = await initSqlJs();
 
-    // Enable foreign keys for data integrity
-    db.pragma('journal_mode = WAL');
-    db.pragma('foreign_keys = ON');
+    // Load existing database or create new one
+    if (existsSync(dbPath)) {
+      const fileBuffer = readFileSync(dbPath);
+      db = new SQL.Database(fileBuffer);
+      logger.info(`Database loaded from: ${dbPath}`);
+    } else {
+      db = new SQL.Database();
+      logger.info('Created new database');
+    }
+
+    // Save function for persistence
+    db.saveToFile = () => {
+      if (db && dbPath) {
+        const data = db.export();
+        const buffer = Buffer.from(data);
+        writeFileSync(dbPath, buffer);
+        logger.debug('Database saved to disk');
+      }
+    };
+
+    // Auto-save every 5 seconds if there are changes
+    setInterval(() => {
+      if (db) {
+        db.saveToFile();
+      }
+    }, 5000);
 
     logger.info(`Database initialized at: ${dbPath}`);
 
@@ -43,7 +68,7 @@ export function initDatabase() {
 
 /**
  * Get the database instance
- * @returns {Database.Database} SQLite database instance
+ * @returns {Database} SQLite database instance
  */
 export function getDatabase() {
   if (!db) {
@@ -53,10 +78,17 @@ export function getDatabase() {
 }
 
 /**
- * Close database connection
+ * Close database connection and save
  */
 export function closeDatabase() {
   if (db) {
+    // Save before closing
+    if (dbPath) {
+      const data = db.export();
+      const buffer = Buffer.from(data);
+      writeFileSync(dbPath, buffer);
+      logger.info('Database saved before closing');
+    }
     db.close();
     db = null;
     logger.info('Database connection closed');
