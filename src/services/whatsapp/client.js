@@ -1,27 +1,23 @@
-import makeWASocket, {
-  useMultiFileAuthState,
-  fetchLatestBaileysVersion,
-} from '@whiskeysockets/baileys';
-import Boom from '@hapi/boom';
+import { Client, LocalAuth } from 'whatsapp-web.js';
 import { config } from '../../config/index.js';
 import logger from '../../utils/logger.js';
 import { existsSync, mkdirSync } from 'fs';
 
 /**
- * WhatsApp Client - Baileys wrapper
+ * WhatsApp Client - whatsapp-web.js wrapper
  *
  * Handles WhatsApp connection, authentication, and messaging
  */
 
 // Event emitter for QR code and connection status
 let eventEmitter = null;
-let sock = null;
+let client = null;
 let currentQR = null;
 
 /**
  * Initialize WhatsApp client
  * @param {EventEmitter} events - Event emitter for QR codes and status
- * @returns {Promise<Object>} - Socket instance
+ * @returns {Promise<Object>} - Client instance
  */
 export async function initWhatsAppClient(events) {
   eventEmitter = events;
@@ -32,82 +28,73 @@ export async function initWhatsAppClient(events) {
   }
 
   try {
-    // Fetch latest Baileys version
-    const { version } = await fetchLatestBaileysVersion();
-    logger.info(`Using Baileys version: ${version.join('.')}`);
-
-    // Load auth state from files
-    const { state, saveCreds } = await useMultiFileAuthState(config.AUTH_DIR);
-
-    // Create the socket
-    sock = makeWASocket({
-      version,
-      auth: state,
-      printQRInTerminal: true,
-      logger: logger,
-      connectTimeoutMs: 30000,
-      maxIdleTimeMs: 60000,
+    // Create client with LocalAuth (stores session in .auth folder)
+    client = new Client({
+      authStrategy: new LocalAuth({
+        dataPath: config.AUTH_DIR,
+      }),
+      puppeteer: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      },
     });
-
-    // Debug all events
-    const debugEvents = ['conn', 'chats', 'contacts', 'messages', 'story', 'presence', 'call'];
-    debugEvents.forEach(event => {
-      sock.ev.on(event, (...args) => {
-        logger.debug(`Event ${event}:`, args.length > 0 ? JSON.stringify(args[0]).substring(0, 100) : 'called');
-      });
-    });
-
-    // Save credentials when updated
-    sock.ev.on('creds.update', saveCreds);
 
     // Handle QR code generation
-    sock.ev.on('qr', (qr) => {
+    client.on('qr', (qr) => {
       currentQR = qr;
-      logger.info('QR code received, length:', qr.length);
+      logger.info('QR code received');
       if (eventEmitter) {
         eventEmitter.emit('qr', qr);
       }
     });
 
-    sock.ev.on('messages.upsert', (msg) => {
-      logger.info('Messages upsert:', JSON.stringify(msg).substring(0, 200));
+    // Handle successful authentication
+    client.on('authenticated', () => {
+      logger.info('WhatsApp authenticated successfully');
+      currentQR = null;
     });
 
-    // Handle connection updates
-    sock.ev.on('connection.update', (update) => {
-      const { connection, lastDisconnect } = update;
-      logger.info('Connection update:', { connection, lastDisconnect });
-
-      if (connection === 'open') {
-        currentQR = null;
-        logger.info('WhatsApp connected successfully');
-        if (eventEmitter) {
-          eventEmitter.emit('connected');
-        }
-      }
-
-      if (connection === 'close') {
-        const shouldReconnect = Boom.isBoom(lastDisconnect)
-          ? lastDisconnect.output.statusCode !== 401
-          : true;
-
-        if (shouldReconnect) {
-          logger.warn('Connection closed, reconnecting...');
-          if (eventEmitter) {
-            eventEmitter.emit('reconnecting');
-          }
-        } else {
-          logger.error('Connection closed permanently (401)');
-          if (eventEmitter) {
-            eventEmitter.emit('disconnected', 'Session expired. Please scan QR again.');
-          }
-        }
+    // Handle ready state
+    client.on('ready', async () => {
+      logger.info('WhatsApp client ready');
+      currentQR = null;
+      if (eventEmitter) {
+        eventEmitter.emit('connected');
       }
     });
 
+    // Handle disconnection
+    client.on('disconnected', (reason) => {
+      logger.warn('WhatsApp disconnected', { reason });
+      if (eventEmitter) {
+        eventEmitter.emit('disconnected', reason);
+      }
+    });
+
+    // Handle messages
+    client.on('message', (msg) => {
+      logger.debug('Message received', {
+        from: msg.from,
+        body: msg.body.substring(0, 50),
+      });
+      if (eventEmitter) {
+        eventEmitter.emit('message', msg);
+      }
+    });
+
+    // Handle incoming calls
+    client.on('call', (call) => {
+      logger.info('Incoming call', { from: call.from });
+      if (eventEmitter) {
+        eventEmitter.emit('call', call);
+      }
+    });
+
+    // Initialize the client
+    await client.initialize();
     logger.info('WhatsApp client initialized');
 
-    return sock;
+    return client;
   } catch (error) {
     logger.error('Failed to initialize WhatsApp client', { error: error.message });
     throw error;
@@ -115,14 +102,14 @@ export async function initWhatsAppClient(events) {
 }
 
 /**
- * Get the socket instance
- * @returns {Object} - Socket instance
+ * Get the client instance
+ * @returns {Object} - Client instance
  */
-export function getSocket() {
-  if (!sock) {
+export function getClient() {
+  if (!client) {
     throw new Error('WhatsApp client not initialized');
   }
-  return sock;
+  return client;
 }
 
 /**
@@ -132,16 +119,13 @@ export function getSocket() {
  * @returns {Promise<Object>} - Message send result
  */
 export async function sendMessage(to, message) {
-  const socket = getSocket();
+  const clientInstance = getClient();
 
   try {
     const jid = formatJid(to);
+    const result = await clientInstance.sendMessage(jid, message);
 
-    const result = await socket.sendMessage(jid, {
-      text: message,
-    });
-
-    logger.debug('Message sent', { to: jid, messageId: result.key.id });
+    logger.debug('Message sent', { to: jid, messageId: result.id._serialized });
     return result;
   } catch (error) {
     logger.error('Failed to send message', { to, error: error.message });
@@ -157,15 +141,12 @@ export async function sendMessage(to, message) {
  * @returns {Promise<Object>} - Message send result
  */
 export async function sendReply(to, message, quoted) {
-  const socket = getSocket();
+  const clientInstance = getClient();
 
   try {
     const jid = formatJid(to);
-
-    const result = await socket.sendMessage(jid, {
-      text: message,
-      quoted: quoted,
-    });
+    const options = quoted ? { quoted: quoted } : {};
+    const result = await clientInstance.sendMessage(jid, message, options);
 
     logger.debug('Reply sent', { to: jid });
     return result;
@@ -179,10 +160,10 @@ export async function sendReply(to, message, quoted) {
  * Disconnect WhatsApp client
  */
 export async function disconnectWhatsApp() {
-  if (sock) {
+  if (client) {
     try {
-      await sock.logout();
-      sock = null;
+      await client.destroy();
+      client = null;
       logger.info('WhatsApp client disconnected');
     } catch (error) {
       logger.error('Error disconnecting WhatsApp', { error: error.message });
@@ -195,8 +176,7 @@ export async function disconnectWhatsApp() {
  * @returns {boolean} - Connection status
  */
 export function isConnected() {
-  const connected = !!(sock && sock.authState?.creds?.me);
-  return connected;
+  return !!(client && client.info && client.info.wid);
 }
 
 /**
@@ -204,8 +184,8 @@ export function isConnected() {
  * @returns {string|null} - Phone number or null
  */
 export function getBotPhone() {
-  if (sock && sock.authState?.creds?.me) {
-    return sock.authState.creds.me.id.split('@')[0];
+  if (client && client.info && client.info.wid) {
+    return client.info.wid._serialized.split('@')[0];
   }
   return null;
 }
@@ -227,18 +207,22 @@ function formatJid(phone) {
   const cleaned = phone.replace(/\D/g, '');
 
   if (cleaned.length === 10) {
-    return `${cleaned}@s.whatsapp.net`;
+    return `${cleaned}@c.us`;
   }
 
   if (cleaned.length === 12 && cleaned.startsWith('91')) {
-    return `${cleaned}@s.whatsapp.net`;
+    return `${cleaned}@c.us`;
   }
 
-  return `${cleaned}@s.whatsapp.net`;
+  return `${cleaned}@c.us`;
 }
+
+// Export for backwards compatibility with Baileys naming
+export const getSocket = getClient;
 
 export default {
   initWhatsAppClient,
+  getClient,
   getSocket,
   sendMessage,
   sendReply,

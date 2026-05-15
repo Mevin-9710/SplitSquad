@@ -1,11 +1,10 @@
-import { getSocket, sendMessage } from './client.js';
+import { getClient, sendMessage } from './client.js';
 import { getHistoryByPhone } from '../../models/split.js';
-import { processInput, State, getSessionData } from '../session/manager.js';
+import { processInput, getSessionData } from '../session/manager.js';
 import {
   createNewSplit,
   formatSplitMessage,
   formatHistoryMessage,
-  calculateEqualSplit,
 } from '../split/service.js';
 import logger from '../../utils/logger.js';
 
@@ -42,37 +41,36 @@ All amounts are in rupees (₹).
 `.trim();
 
 /**
- * Handle incoming message
- * @param {Object} message - Baileys message object
+ * Handle incoming message (whatsapp-web.js format)
+ * @param {Object} msg - whatsapp-web.js message object
  */
-export async function handleMessage(message) {
+export async function handleMessage(msg) {
   try {
     // Extract message content
-    const { key, message: msgContent } = message;
+    const from = msg.from;
+    const body = msg.body;
 
-    if (!key?.remoteJid || !msgContent) {
+    if (!from || !body) {
       return;
     }
 
-    // Ignore group messages unless mentioned
-    const isGroup = key.remoteJid.endsWith('@g.us');
+    // Ignore group messages
+    const isGroup = from.endsWith('@g.us');
     if (isGroup) {
-      // For now, ignore groups
       return;
     }
 
-    // Extract phone and text
-    const phone = key.remoteJid.split('@')[0];
-    const text = msgContent?.conversation || msgContent?.extendedTextMessage?.text || '';
+    // Extract phone number
+    const phone = from.replace('@c.us', '').replace('@s.whatsapp.net', '');
 
-    if (!text.trim()) {
+    if (!body.trim()) {
       return;
     }
 
-    logger.debug('Received message', { phone, text: text.substring(0, 50) });
+    logger.debug('Received message', { phone, text: body.substring(0, 50) });
 
     // Process the message
-    await processMessage(phone, text, message);
+    await processMessage(phone, body, msg);
   } catch (error) {
     logger.error('Error handling message', { error: error.message });
   }
@@ -233,11 +231,8 @@ async function handleEqualSplit(phone) {
     }
 
     // Add next person with equal share
-    const { addParticipant } = await import('../../models/participant.js');
     const amountPerPerson = Math.floor(remaining / (participants.length + 1));
 
-    // This is a special case - we'd need to prompt for the person's name
-    // For simplicity, we'll tell them to add "PersonName,{amount}" format
     await sendMessage(
       phone,
       `💡 Remaining: ₹${(remaining / 100).toFixed(2)}\n` +
@@ -295,15 +290,13 @@ async function handleDone(phone) {
  * @param {EventEmitter} eventEmitter - Event emitter for WhatsApp events
  */
 export async function initHandlers(eventEmitter) {
-  const socket = getSocket();
+  const client = getClient();
 
   // Listen for incoming messages
-  socket.ev.on('messages.upsert', async ({ messages }) => {
-    for (const message of messages) {
-      // Ignore messages sent by us
-      if (!message.key.fromMe) {
-        await handleMessage(message);
-      }
+  client.on('message', async (msg) => {
+    // Ignore messages sent by us
+    if (!msg.fromMe) {
+      await handleMessage(msg);
     }
   });
 
