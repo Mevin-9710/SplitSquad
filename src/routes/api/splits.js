@@ -178,4 +178,47 @@ router.post('/splits/:id/send-whatsapp', enforceSendRateLimit, async (req, res) 
   }
 });
 
+router.post('/splits/:id/send-whatsapp/:participantId', enforceSendRateLimit, async (req, res) => {
+  try {
+    const split = getSplitById(req.params.id, req.creatorId);
+    if (!split) return res.status(404).json({ success: false, error: 'Split not found' });
+
+    const participant = split.participants?.find(p => p.id === req.params.participantId);
+    if (!participant) return res.status(404).json({ success: false, error: 'Participant not found' });
+
+    const useEvolution = isEvolutionConfigured();
+    if (useEvolution) {
+      const status = await getConnectionStatus(req.creatorId);
+      if (!status.success || !status.connected) {
+        return res.status(409).json({ success: false, error: 'WhatsApp not connected. Connect from /qr first.' });
+      }
+    } else if (!isStandardConnected()) {
+      return res.status(409).json({ success: false, error: 'Standard WhatsApp session not connected. Connect from /qr first.' });
+    }
+
+    const appBaseUrl = config.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const message = buildParticipantMessage(split, participant, req.creatorId, appBaseUrl);
+
+    const result = useEvolution
+      ? await sendEvolutionMessage(req.creatorId, participant.phone, message)
+      : await sendStandardMessage(participant.phone, message).then(() => ({ success: true })).catch((error) => ({ success: false, error: error.message }));
+
+    logger.info('Sent individual WhatsApp message', {
+      creatorId: req.creatorId,
+      splitId: split.id,
+      participantName: participant.name,
+      success: !!result.success,
+    });
+
+    res.json({
+      success: !!result.success,
+      participantName: participant.name,
+      error: result.success ? null : (result.error || 'Send failed'),
+    });
+  } catch (error) {
+    logger.error('Error sending individual WhatsApp message', { creatorId: req.creatorId, splitId: req.params.id, error: error.message });
+    res.status(500).json({ success: false, error: 'Failed to send message' });
+  }
+});
+
 export default router;
