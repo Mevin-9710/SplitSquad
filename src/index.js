@@ -9,6 +9,7 @@ import { initWhatsAppClient, disconnectWhatsApp, isConnected } from './services/
 import { initHandlers } from './services/whatsapp/handlers.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import logger from './utils/logger.js';
+import { attachCreatorSession } from './middleware/creatorSession.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,6 +30,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(attachCreatorSession);
 
 // Configure EJS as the view engine
 app.set('view engine', 'ejs');
@@ -39,9 +41,15 @@ app.use(express.static(resolve(__dirname, '..', 'public')));
 
 // Import web routes
 import webRouter from './routes/web/index.js';
+import apiSplitsRouter from './routes/api/splits.js';
+import apiEvolutionRouter from './routes/api/evolution.js';
 
 // Mount web routes at root
 app.use('/', webRouter);
+
+// Mount API routes
+app.use('/api', apiSplitsRouter);
+app.use('/api/evolution', apiEvolutionRouter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -109,8 +117,13 @@ async function bootstrap() {
   });
 
   try {
-    await initWhatsAppClient(events);
-    await initHandlers(events);
+    await Promise.race([
+      (async () => {
+        await initWhatsAppClient(events);
+        await initHandlers(events);
+      })(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('WhatsApp init timeout')), 15000)),
+    ]);
     logger.info('WhatsApp client ready');
   } catch (error) {
     logger.error('WhatsApp initialization failed', { error: error.message });

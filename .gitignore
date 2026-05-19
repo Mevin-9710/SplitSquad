@@ -8,6 +8,7 @@ node_modules/
 # Auth files (WhatsApp session - don't commit)
 .auth/
 auth_info*/
+.wwebjs_cache/
 
 # Database
 data/*.db

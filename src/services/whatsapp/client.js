@@ -33,6 +33,7 @@ export async function initWhatsAppClient(events) {
     client = new Client({
       authStrategy: new LocalAuth({
         dataPath: config.AUTH_DIR,
+        clientId: `runtime_${process.pid}`,
       }),
       puppeteer: {
         headless: true,
@@ -92,9 +93,14 @@ export async function initWhatsAppClient(events) {
       }
     });
 
-    // Initialize the client
-    await client.initialize();
-    logger.info('WhatsApp client initialized');
+    // Initialize in background so app server can start immediately.
+    client.initialize()
+      .then(() => {
+        logger.info('WhatsApp client initialized');
+      })
+      .catch((error) => {
+        logger.error('WhatsApp background initialization failed', { error: error.message });
+      });
 
     return client;
   } catch (error) {

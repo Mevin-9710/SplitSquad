@@ -62,6 +62,8 @@ All amounts are stored as **integer paise** in the database (45000 = ₹450.00).
 | `src/services/whatsapp/handlers.js` | Message routing, command handlers |
 | `src/services/session/manager.js` | State machine, input processing |
 | `src/services/split/service.js` | Business logic, split creation |
+| `src/services/evolution/client.js` | Evolution API client, QR generation |
+| `src/routes/api/evolution.js` | Evolution API endpoints |
 | `src/routes/api/splits.js` | REST API endpoints |
 
 ## WhatsApp Commands
@@ -82,3 +84,18 @@ Create `.env` from `.env.example`:
 - `PORT` - Server port (default: 3000)
 - `DATABASE_PATH` - SQLite file path
 - `NODE_ENV` - development/production
+- `EVOLUTION_API_URL` - Evolution API base URL (e.g., https://evolution.example.com)
+- `EVOLUTION_API_KEY` - Evolution API key for authentication
+- `EVOLUTION_INSTANCE` - Instance name (default: "default")
+
+### Evolution API Setup
+
+SplitSquad supports connecting via Evolution API for hosted WhatsApp instances:
+
+1. Set the environment variables above in your `.env` file
+2. Navigate to `/qr` in the web app
+3. Select "Evolution API" tab
+4. Click "Connect Evolution API" to generate a QR code
+5. Scan the QR code with your WhatsApp app
+
+The Evolution API connection allows multiple users to connect their own WhatsApp accounts for automated messaging.
