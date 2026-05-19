@@ -2,18 +2,19 @@ import { v4 as uuidv4 } from 'uuid';
 import { getDatabase } from '../database/connection.js';
 import logger from '../utils/logger.js';
 
-export function createSplit(description, totalAmount, createdBy) {
+export function createSplit(description, totalAmount, createdBy, options = {}) {
   const db = getDatabase();
   const id = uuidv4();
   const createdAt = new Date().toISOString();
+  const { paymentMode = 'creator_paid', merchantUpiId = null, merchantName = null, merchantCurrency = 'INR' } = options;
 
   try {
     db.run(
-      `INSERT INTO splits (id, description, total_amount, created_by, created_at, status)
-       VALUES (?, ?, ?, ?, ?, 'active')`,
-      [id, description, totalAmount, createdBy, createdAt]
+      `INSERT INTO splits (id, description, total_amount, created_by, created_at, status, payment_mode, merchant_upi_id, merchant_name, merchant_currency)
+       VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`,
+      [id, description, totalAmount, createdBy, createdAt, paymentMode, merchantUpiId, merchantName, merchantCurrency]
     );
-    logger.debug('Created new split', { id, totalAmount, createdBy });
+    logger.debug('Created new split', { id, totalAmount, createdBy, paymentMode });
     return id;
   } catch (error) {
     logger.error('Failed to create split', { error: error.message });
@@ -29,7 +30,7 @@ export function getSplitById(id, createdBy = null) {
     const params = createdBy ? [id, createdBy] : [id];
 
     const splitResult = db.exec(
-      `SELECT id, description, total_amount, created_by, created_at, status
+      `SELECT id, description, total_amount, created_by, created_at, status, payment_mode, merchant_upi_id, merchant_name, merchant_currency
        FROM splits ${where}`,
       params
     );
@@ -62,7 +63,7 @@ export function getRecentSplits(limit = 20, createdBy = null) {
     const where = createdBy ? 'WHERE created_by = ?' : '';
     const params = createdBy ? [createdBy] : [];
     const splitsResult = db.exec(
-      `SELECT id, description, total_amount, created_by, created_at, status
+      `SELECT id, description, total_amount, created_by, created_at, status, payment_mode, merchant_upi_id, merchant_name, merchant_currency
        FROM splits ${where}
        ORDER BY created_at DESC
        LIMIT ${safeLimit}`,
@@ -96,7 +97,7 @@ export function getHistoryByPhone(phone) {
 
   try {
     const splitsResult = db.exec(
-      `SELECT DISTINCT s.id, s.description, s.total_amount, s.created_by, s.created_at, s.status
+      `SELECT DISTINCT s.id, s.description, s.total_amount, s.created_by, s.created_at, s.status, s.payment_mode, s.merchant_upi_id, s.merchant_name, s.merchant_currency
        FROM splits s
        LEFT JOIN participants p ON s.id = p.split_id
        WHERE s.created_by = ? OR p.phone = ?

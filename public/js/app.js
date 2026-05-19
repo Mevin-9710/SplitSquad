@@ -3,6 +3,7 @@ const API_BASE = '';
 let selectedParticipants = [];
 let allContacts = {};
 let dialogActiveCategory = 'friends';
+let qrData = null;
 
 function formatCurrency(amount) {
   if (typeof amount !== 'number') amount = parseFloat(amount) || 0;
@@ -29,10 +30,40 @@ function normalizePhone(input) {
   return digits;
 }
 
+function generateUpiUri(options) {
+  const { pa, pn, am, tn, cu = 'INR' } = options;
+  if (!pa) throw new Error('UPI ID is required');
+  const params = new URLSearchParams();
+  params.set('pa', pa);
+  if (pn) params.set('pn', pn);
+  if (am) params.set('am', String(am));
+  if (tn) params.set('tn', tn);
+  if (cu) params.set('cu', cu);
+  return `upi://pay?${params.toString()}`;
+}
+
+function generateWhatsAppLink(phone, message) {
+  const cleaned = phone.replace(/\D/g, '');
+  return `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
+}
+
 function createSplitCard(split) {
   const card = document.createElement('div');
-  card.className = 'bg-white rounded-xl shadow-md p-4 mb-4 hover:shadow-lg transition-shadow';
-  card.innerHTML = `<div class="flex justify-between items-start mb-3"><div><h3 class="font-semibold text-gray-800 text-lg">${escapeHtml(split.description || 'Untitled Split')}</h3><p class="text-gray-500 text-sm">${formatDate(split.created_at)}</p></div></div><div class="flex justify-between items-center"><div class="text-2xl font-bold text-[#25D366]">${formatCurrency(split.total_amount)}</div><a href="/split/${split.id}" class="text-[#25D366] hover:text-[#128C7E] font-medium text-sm">View Details →</a></div>`;
+  card.className = 'bg-white rounded-xl shadow-md p-4 mb-3 hover:shadow-lg transition-shadow';
+  const amountDisplay = split.total_amount > 100 ? (split.total_amount / 100).toFixed(2) : split.total_amount;
+  card.innerHTML = `
+    <div class="flex justify-between items-start mb-2">
+      <div>
+        <h3 class="font-semibold text-gray-800">${escapeHtml(split.description || 'Untitled')}</h3>
+        <p class="text-xs text-gray-500">${formatDate(split.created_at)}</p>
+      </div>
+      <span class="text-xs px-2 py-1 rounded ${split.payment_mode === 'merchant_direct' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}">${split.payment_mode === 'merchant_direct' ? 'Pay Merchant' : 'I Paid'}</span>
+    </div>
+    <div class="flex justify-between items-center">
+      <div class="text-xl font-bold text-green-600">₹${amountDisplay}</div>
+      <a href="/split/${split.id}" class="text-green-600 hover:text-green-700 font-medium text-sm">View →</a>
+    </div>
+  `;
   return card;
 }
 
@@ -92,7 +123,7 @@ function renderDialogPanel(category) {
 
   const contacts = allContacts[category] || [];
   if (contacts.length === 0) {
-    panel.innerHTML = `<p class="text-gray-400 text-center py-8">No contacts in this category. <a href="/contacts" class="text-green-600 underline">Manage Participants</a></p>`;
+    panel.innerHTML = `<p class="text-gray-400 text-center py-8">No contacts. <a href="/contacts" class="text-green-600 underline">Add some</a></p>`;
     return;
   }
 
@@ -103,8 +134,8 @@ function renderDialogPanel(category) {
     row.className = `flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-green-50 border border-green-200' : 'hover:bg-gray-50 border border-transparent'}`;
     row.innerHTML = `
       <input type="checkbox" class="contact-checkbox w-4 h-4 text-green-600 rounded" value="${contact.id}" ${isSelected ? 'checked' : ''}>
-      <div class="flex-1">
-        <p class="font-medium">${escapeHtml(contact.name)}</p>
+      <div class="flex-1 min-w-0">
+        <p class="font-medium truncate">${escapeHtml(contact.name)}</p>
         <p class="text-sm text-gray-500">${escapeHtml(contact.phone)}</p>
       </div>
     `;
@@ -170,6 +201,18 @@ async function addFromContactsInDialog() {
   }
 }
 
+function calculateEqualSplit(totalPaise, count) {
+  if (count <= 0) return [];
+  if (count === 1) return [totalPaise];
+  const base = Math.floor(totalPaise / count);
+  const remainder = totalPaise - (base * count);
+  const shares = [];
+  for (let i = 0; i < count; i++) {
+    shares.push(base + (i < remainder ? 1 : 0));
+  }
+  return shares;
+}
+
 async function createSplit(event) {
   event.preventDefault();
   const status = document.getElementById('create-split-status');
@@ -177,6 +220,7 @@ async function createSplit(event) {
 
   const description = document.getElementById('description')?.value.trim();
   const amount = parseFloat(document.getElementById('total-amount')?.value);
+  const paymentMode = document.querySelector('input[name="paymentMode"]:checked')?.value || 'creator_paid';
 
   if (!description || Number.isNaN(amount)) {
     status.textContent = 'Please fill in description and amount.';
@@ -188,19 +232,47 @@ async function createSplit(event) {
     return;
   }
 
-  const perPerson = amount / selectedParticipants.length;
+  if (paymentMode === 'creator_paid') {
+    try {
+      const resp = await fetch('/api/profile/upi/default');
+      const data = await resp.json();
+      if (!data.hasDefault) {
+        status.textContent = 'Please add your UPI ID in Settings before creating a reimbursement split.';
+        return;
+      }
+    } catch {
+      status.textContent = 'Failed to verify UPI profile.';
+      return;
+    }
+  }
 
-  const participants = selectedParticipants.map(p => ({
+  const totalPaise = Math.round(amount * 100);
+  const sharesPaise = calculateEqualSplit(totalPaise, selectedParticipants.length);
+
+  const participants = selectedParticipants.map((p, i) => ({
     name: p.name,
     phone: p.phone,
-    amount: Math.round(perPerson * 100) / 100,
+    amount: Math.round((sharesPaise[i] / 100) * 100) / 100,
   }));
+
+  const splitData = {
+    description,
+    amount,
+    participants,
+    paymentMode,
+  };
+
+  if (qrData) {
+    splitData.merchantUpiId = qrData.pa;
+    splitData.merchantName = qrData.pn;
+    splitData.merchantCurrency = qrData.cu || 'INR';
+  }
 
   try {
     const response = await fetch('/api/splits', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description, amount, participants }),
+      body: JSON.stringify(splitData),
     });
     const data = await response.json();
     if (!response.ok) return void (status.textContent = data.error || 'Failed to create split.');
@@ -235,6 +307,38 @@ async function loadSplits() {
   }
 }
 
+function loadQrDataFromSession() {
+  const raw = sessionStorage.getItem('splitsquad_qr_data');
+  if (!raw) return;
+
+  try {
+    qrData = JSON.parse(raw);
+    sessionStorage.removeItem('splitsquad_qr_data');
+
+    const display = document.getElementById('qr-data-display');
+    const nameEl = document.getElementById('qr-merchant-name');
+    const upiEl = document.getElementById('qr-upi-id');
+    const amountEl = document.getElementById('total-amount');
+
+    if (qrData.pn) nameEl.textContent = qrData.pn;
+    upiEl.textContent = qrData.pa;
+
+    if (qrData.am) {
+      amountEl.value = qrData.am;
+    }
+
+    display.classList.remove('hidden');
+
+    document.getElementById('clear-qr-data').addEventListener('click', () => {
+      qrData = null;
+      display.classList.add('hidden');
+      amountEl.value = '';
+    });
+  } catch {
+    qrData = null;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const createForm = document.getElementById('create-split-form');
   const openDialogBtn = document.getElementById('open-participants-dialog');
@@ -243,6 +347,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const addFromContactsBtn = document.getElementById('dialog-add-from-contacts');
   const dialogTabs = document.querySelectorAll('.dialog-tab');
   const participantsDialog = document.getElementById('participants-dialog');
+
+  loadQrDataFromSession();
 
   if (openDialogBtn) {
     await loadContacts();

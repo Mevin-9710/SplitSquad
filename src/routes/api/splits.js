@@ -4,6 +4,8 @@ import { addParticipant } from '../../models/participant.js';
 import { isEvolutionConfigured, sendMessage as sendEvolutionMessage, getConnectionStatus, getInstanceName } from '../../services/evolution/client.js';
 import { isConnected as isStandardConnected, sendMessage as sendStandardMessage } from '../../services/whatsapp/client.js';
 import { normalizePhone } from '../../utils/phone.js';
+import { generateUpiUri } from '../../utils/upi.js';
+import { generateParticipantMessage } from '../../utils/whatsapp.js';
 import logger from '../../utils/logger.js';
 import { config } from '../../config/index.js';
 
@@ -25,6 +27,34 @@ function enforceSendRateLimit(req, res, next) {
   next();
 }
 
+function getUpiPayeeForSplit(split, creatorId) {
+  if (split.payment_mode === 'merchant_direct' && split.merchant_upi_id) {
+    return { pa: split.merchant_upi_id, pn: split.merchant_name || 'Merchant' };
+  }
+  return { pa: `${creatorId}@upi`, pn: creatorId };
+}
+
+function buildParticipantMessage(split, participant, creatorId, appBaseUrl) {
+  const payee = getUpiPayeeForSplit(split, creatorId);
+  const amountRupees = (participant.amount / 100).toFixed(2);
+  const upiLink = generateUpiUri({
+    pa: payee.pa,
+    pn: payee.pn,
+    am: amountRupees,
+    tn: `SplitSquad: ${split.description}`,
+    cu: split.merchant_currency || 'INR',
+  });
+  const splitUrl = `${appBaseUrl}/split/${split.id}`;
+
+  return generateParticipantMessage({
+    participantName: participant.name,
+    amount: amountRupees,
+    splitTitle: split.description,
+    upiLink,
+    splitUrl,
+  });
+}
+
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -40,7 +70,7 @@ router.get('/splits', (req, res) => {
 
 router.post('/splits', (req, res) => {
   try {
-    const { description, amount, participants } = req.body;
+    const { description, amount, participants, paymentMode, merchantUpiId, merchantName, merchantCurrency } = req.body;
 
     if (!description || typeof description !== 'string') return res.status(400).json({ error: 'description is required and must be a string' });
     if (amount === undefined || typeof amount !== 'number' || amount <= 0) return res.status(400).json({ error: 'amount is required and must be a positive number' });
@@ -63,7 +93,14 @@ router.post('/splits', (req, res) => {
     const allocated = validated.reduce((sum, p) => sum + p.amountPaise, 0);
     if (allocated > totalPaise) return res.status(400).json({ error: 'Participant allocation exceeds split total' });
 
-    const splitId = createSplit(description.trim(), totalPaise, req.creatorId);
+    const splitOptions = {
+      paymentMode: paymentMode || 'creator_paid',
+      merchantUpiId: merchantUpiId || null,
+      merchantName: merchantName || null,
+      merchantCurrency: merchantCurrency || 'INR',
+    };
+
+    const splitId = createSplit(description.trim(), totalPaise, req.creatorId, splitOptions);
     for (const participant of validated) {
       addParticipant(splitId, participant.name, participant.phone, participant.amountPaise);
     }
@@ -103,20 +140,10 @@ router.post('/splits/:id/send-whatsapp', enforceSendRateLimit, async (req, res) 
     if (!participants.length) return res.status(400).json({ success: false, error: 'No participants to message' });
 
     const appBaseUrl = config.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
-    const message = [
-      '*SplitSquad Bill Split*',
-      `Description: ${split.description}`,
-      `Created by: ${req.creatorId}`,
-      `Total: INR ${(split.total_amount / 100).toFixed(2)}`,
-      '',
-      'Shares:',
-      ...participants.map((p) => `- ${p.name}: INR ${(p.amount / 100).toFixed(2)}`),
-      '',
-      `Split link: ${appBaseUrl}/split/${split.id}`,
-    ].join('\n');
 
     const results = [];
     for (const participant of participants) {
+      const message = buildParticipantMessage(split, participant, req.creatorId, appBaseUrl);
       const result = useEvolution
         ? await sendEvolutionMessage(req.creatorId, participant.phone, message)
         : await sendStandardMessage(participant.phone, message).then(() => ({ success: true })).catch((error) => ({ success: false, error: error.message }));

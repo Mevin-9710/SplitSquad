@@ -1,1 +1,159 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title><%= split.description %> - SplitSquad</title><script src="https://cdn.tailwindcss.com"></script><script src="/js/utils/format.js"></script></head><body class="bg-gray-50 min-h-screen"><main class="max-w-2xl mx-auto px-4 py-8"><a class="text-green-600" href="/">← Back</a><h1 class="text-2xl font-bold mt-2"><%= split.description %></h1><p class="text-sm text-gray-600">Creator: <code><%= creatorName || creatorId || 'unknown' %></code></p><p class="text-sm text-gray-600">Total: <span id="split-total"></span></p><button id="send-whatsapp-btn" class="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg">Send via WhatsApp</button><p id="send-status" class="text-sm mt-2"></p><div id="delivery-results" class="text-sm mt-2"></div><h2 class="text-lg font-semibold mt-6 mb-2">Participants</h2><div id="participants-list" class="space-y-2"></div></main><script>const participants=<%- JSON.stringify(split.participants) %>;document.getElementById('split-total').textContent=formatCurrency(<%= split.total_amount %>);const c=document.getElementById('participants-list');participants.forEach(p=>{const d=document.createElement('div');d.className='bg-white rounded p-2';d.textContent=`${p.name} (${p.phone}) - ${formatCurrency(p.amount)}`;c.appendChild(d);});document.getElementById('send-whatsapp-btn').addEventListener('click',async()=>{const btn=document.getElementById('send-whatsapp-btn');const status=document.getElementById('send-status');const report=document.getElementById('delivery-results');btn.disabled=true;btn.textContent='Sending...';status.textContent='';report.textContent='';try{const response=await fetch('/api/splits/<%= split.id %>/send-whatsapp',{method:'POST'});const data=await response.json();if(!response.ok){status.textContent=data.error||'Send failed';return;}status.textContent=`Delivered ${data.delivered}/${data.total}`;const failures=(data.results||[]).filter(r=>!r.success);if(failures.length){report.textContent='Failures: '+failures.map(f=>`${f.name}(${f.error})`).join(', ');}}catch{status.textContent='Failed to send WhatsApp messages.';}finally{btn.disabled=false;btn.textContent='Send via WhatsApp';}});</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= split.description %> - SplitSquad</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <header class="bg-green-600 text-white p-4">
+    <div class="max-w-2xl mx-auto flex justify-between items-center">
+      <a class="text-sm" href="/">← Back</a>
+      <h1 class="text-lg font-bold truncate"><%= split.description %></h1>
+      <div></div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-4 py-6">
+    <!-- Split Summary -->
+    <section class="bg-white rounded-xl shadow-md p-5 mb-6">
+      <div class="flex justify-between items-start mb-3">
+        <div>
+          <h2 class="text-xl font-bold"><%= split.description %></h2>
+          <p class="text-sm text-gray-500">Created by <%= creatorName || creatorId %></p>
+        </div>
+        <span class="text-xs px-2 py-1 rounded font-medium <%= split.payment_mode === 'merchant_direct' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700' %>">
+          <%= split.payment_mode === 'merchant_direct' ? 'Pay Merchant Directly' : 'Creator Paid' %>
+        </span>
+      </div>
+      <div class="text-3xl font-bold text-green-600 mb-1">₹<%= (split.total_amount / 100).toFixed(2) %></div>
+      <p class="text-sm text-gray-500"><%= split.participants.length %> participants</p>
+    </section>
+
+    <!-- WhatsApp Share All -->
+    <section class="bg-white rounded-xl shadow-md p-4 mb-6">
+      <button id="share-all-btn" class="w-full bg-green-600 text-white rounded-lg px-4 py-2.5 font-medium flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Share to All via WhatsApp
+      </button>
+    </section>
+
+    <!-- Participants -->
+    <h2 class="text-lg font-semibold mb-3">Participants</h2>
+    <div id="participants-list" class="space-y-3">
+      <% split.participants.forEach((p, i) => { %>
+        <div class="bg-white rounded-xl shadow-sm p-4" data-participant-id="<%= p.id %>">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="font-semibold"><%= p.name %></p>
+              <p class="text-sm text-gray-500"><%= p.phone %></p>
+            </div>
+            <p class="text-xl font-bold text-green-600">₹<%= (p.amount / 100).toFixed(2) %></p>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button type="button" class="pay-upi-btn flex-1 bg-green-600 text-white rounded-lg px-3 py-2 text-sm font-medium flex items-center justify-center gap-1"
+              data-phone="<%= p.phone %>"
+              data-name="<%= p.name %>"
+              data-amount="<%= p.amount / 100 %>"
+              data-split-id="<%= split.id %>"
+              data-split-name="<%= split.description %>">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              Pay with UPI
+            </button>
+            <button type="button" class="share-whatsapp-btn flex-1 border border-green-600 text-green-600 rounded-lg px-3 py-2 text-sm font-medium flex items-center justify-center gap-1"
+              data-phone="<%= p.phone %>"
+              data-name="<%= p.name %>"
+              data-amount="<%= p.amount / 100 %>">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Share
+            </button>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg text-sm hidden z-50"></div>
+
+  <script>
+    const splitData = <%- JSON.stringify(split) %>;
+    const creatorId = '<%= creatorId %>';
+    const appBaseUrl = window.location.origin;
+
+    function generateUpiUri(pa, pn, amount, note) {
+      const params = new URLSearchParams();
+      params.set('pa', pa);
+      if (pn) params.set('pn', pn);
+      params.set('am', String(amount));
+      if (note) params.set('tn', note);
+      params.set('cu', 'INR');
+      return `upi://pay?${params.toString()}`;
+    }
+
+    function getUpiPayee() {
+      if (splitData.payment_mode === 'merchant_direct' && splitData.merchant_upi_id) {
+        return { pa: splitData.merchant_upi_id, pn: splitData.merchant_name || 'Merchant' };
+      }
+      return { pa: creatorId + '@upi', pn: creatorId };
+    }
+
+    function generateParticipantUpiLink(name, amount) {
+      const payee = getUpiPayee();
+      return generateUpiUri(payee.pa, payee.pn, amount, `SplitSquad: ${splitData.description}`);
+    }
+
+    function generateWhatsAppMessage(name, amount) {
+      const upiLink = generateParticipantUpiLink(name, amount);
+      const splitUrl = `${appBaseUrl}/split/${splitData.id}`;
+      return `Hey ${name}! Your share for "${splitData.description}" is ₹${amount.toFixed(2)}.\n\nPay here:\n${upiLink}\n\nView split:\n${splitUrl}\n\n— Sent via SplitSquad`;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2500);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+    }
+
+    document.querySelectorAll('.pay-upi-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.name;
+        const amount = parseFloat(btn.dataset.amount);
+        const upiUri = generateParticipantUpiLink(name, amount);
+        window.location.href = upiUri;
+      });
+    });
+
+    document.querySelectorAll('.share-whatsapp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const phone = btn.dataset.phone;
+        const name = btn.dataset.name;
+        const amount = parseFloat(btn.dataset.amount);
+        const message = generateWhatsAppMessage(name, amount);
+        const cleaned = phone.replace(/\D/g, '');
+        window.open(`https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`, '_blank');
+      });
+    });
+
+    document.getElementById('share-all-btn').addEventListener('click', () => {
+      const parts = splitData.participants || [];
+      const lines = ['*SplitSquad Bill Split*', `*${splitData.description}*`, `Total: ₹${(splitData.total_amount / 100).toFixed(2)}`, ''];
+      parts.forEach(p => {
+        const amount = (p.amount / 100).toFixed(2);
+        const upiLink = generateParticipantUpiLink(p.name, parseFloat(amount));
+        lines.push(`• ${p.name}: ₹${amount}`);
+        lines.push(`  Pay: ${upiLink}`);
+        lines.push('');
+      });
+      lines.push(`View: ${appBaseUrl}/split/${splitData.id}`);
+      window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+    });
+  </script>
+</body>
+</html>

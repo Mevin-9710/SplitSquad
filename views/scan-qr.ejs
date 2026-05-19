@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan QR - SplitSquad</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <header class="bg-green-600 text-white p-4">
+    <div class="max-w-lg mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">Scan UPI QR Code</h1>
+      <a class="text-sm underline" href="/">← Back</a>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 py-6">
+    <section class="bg-white rounded-xl shadow-md p-4 mb-6">
+      <div id="qr-reader" class="w-full"></div>
+      <div id="qr-reader-status" class="text-center text-sm text-gray-500 mt-2">Tap "Start Scanner" to begin</div>
+    </section>
+
+    <section id="scan-result" class="hidden bg-white rounded-xl shadow-md p-4 mb-6">
+      <h2 class="text-lg font-semibold mb-3">Scanned QR Details</h2>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-gray-500">Payee:</span><span id="res-pn" class="font-medium"></span></div>
+        <div class="flex justify-between"><span class="text-gray-500">UPI ID:</span><span id="res-pa" class="font-mono text-xs"></span></div>
+        <div class="flex justify-between"><span class="text-gray-500">Amount:</span><span id="res-am" class="font-medium"></span></div>
+        <div class="flex justify-between"><span class="text-gray-500">Currency:</span><span id="res-cu" class="font-medium"></span></div>
+      </div>
+      <button id="use-scanned-data" class="w-full bg-green-600 text-white rounded-lg px-4 py-2 mt-4 font-medium">Use This Data</button>
+    </section>
+
+    <div id="status-msg" class="text-sm text-center"></div>
+  </main>
+
+  <!-- Amount Entry Modal -->
+  <div id="amount-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl p-6 w-full max-w-sm">
+      <h3 class="text-lg font-semibold mb-2">Enter Bill Amount</h3>
+      <p class="text-sm text-gray-500 mb-4">QR code did not include an amount. Please enter the total bill amount.</p>
+      <form id="amount-form" class="space-y-3">
+        <input type="number" id="manual-amount" step="0.01" min="0.01" placeholder="Total Amount (₹)" class="border rounded-lg px-3 py-2 w-full text-lg" required>
+        <div class="flex gap-2">
+          <button type="submit" class="flex-1 bg-green-600 text-white rounded-lg px-4 py-2 font-medium">Continue</button>
+          <button type="button" id="cancel-amount" class="flex-1 border rounded-lg px-4 py-2 font-medium">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/qr-scanner.js"></script>
+</body>
+</html>

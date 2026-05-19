@@ -78,4 +78,20 @@ router.get('/contacts', async (req, res) => {
   }
 });
 
+router.get('/scan-qr', (req, res) => {
+  try {
+    res.render('scan-qr', { creatorId: req.creatorId, creatorName: req.creatorName });
+  } catch {
+    res.status(500).render('error', { message: 'Failed to load QR scanner' });
+  }
+});
+
+router.get('/settings', (req, res) => {
+  try {
+    res.render('settings', { creatorId: req.creatorId, creatorName: req.creatorName });
+  } catch {
+    res.status(500).render('error', { message: 'Failed to load settings' });
+  }
+});
+
 export default router;
