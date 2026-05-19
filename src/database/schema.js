@@ -46,6 +46,17 @@ const CREATE_SESSIONS_TABLE = `
   )
 `;
 
+const CREATE_CONTACTS_TABLE = `
+  CREATE TABLE IF NOT EXISTS contacts (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'friends',
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )
+`;
+
 /**
  * Initialize all database tables
  */
@@ -53,23 +64,24 @@ export function initSchema() {
   const db = getDatabase();
 
   try {
-    // Create splits table
     db.exec(CREATE_SPLITS_TABLE);
     logger.debug('Created/verified splits table');
 
-    // Create participants table
     db.exec(CREATE_PARTICIPANTS_TABLE);
     logger.debug('Created/verified participants table');
 
-    // Create sessions table
     db.exec(CREATE_SESSIONS_TABLE);
     logger.debug('Created/verified sessions table');
 
-    // Create indexes for better query performance
+    db.exec(CREATE_CONTACTS_TABLE);
+    logger.debug('Created/verified contacts table');
+
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_participants_split_id ON participants(split_id);
       CREATE INDEX IF NOT EXISTS idx_splits_created_by ON splits(created_by);
       CREATE INDEX IF NOT EXISTS idx_splits_created_at ON splits(created_at);
+      CREATE INDEX IF NOT EXISTS idx_contacts_created_by ON contacts(created_by);
+      CREATE INDEX IF NOT EXISTS idx_contacts_category ON contacts(category, created_by);
     `);
     logger.debug('Created/verified database indexes');
 

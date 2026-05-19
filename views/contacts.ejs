@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Participants - SplitSquad</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <header class="bg-green-600 text-white p-6">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Manage Participants</h1>
+      <a class="text-sm underline" href="/">← Back to Home</a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <section class="bg-white rounded-xl shadow-sm p-4 mb-6">
+      <p class="text-sm text-gray-600">Creator: <code><%= creatorName || creatorId %></code></p>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-md p-6 mb-8">
+      <div class="flex gap-2 mb-4 border-b">
+        <% categories.forEach((cat, i) => { %>
+          <button
+            type="button"
+            class="category-tab px-4 py-2 font-medium text-sm border-b-2 transition-colors <%= i === 0 ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700' %>"
+            data-category="<%= cat %>"
+          >
+            <%= cat.charAt(0).toUpperCase() + cat.slice(1) %>
+          </button>
+        <% }) %>
+      </div>
+
+      <% categories.forEach((cat, i) => { %>
+        <div class="category-panel <%= i === 0 ? '' : 'hidden' %>" data-category="<%= cat %>">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold"><%= cat.charAt(0).toUpperCase() + cat.slice(1) %></h2>
+            <div class="flex gap-2">
+              <button type="button" class="add-from-contacts-btn border border-green-600 text-green-600 rounded-lg px-3 py-1.5 text-sm font-medium" data-category="<%= cat %>">
+                Add from Contacts
+              </button>
+              <button type="button" class="add-manual-btn bg-green-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium" data-category="<%= cat %>">
+                Add Manually
+              </button>
+            </div>
+          </div>
+
+          <div class="contacts-list space-y-2" data-category="<%= cat %>">
+            <% if (contacts[cat] && contacts[cat].length > 0) { %>
+              <% contacts[cat].forEach(contact => { %>
+                <div class="contact-item flex justify-between items-center bg-gray-50 rounded-lg p-3" data-id="<%= contact.id %>">
+                  <div>
+                    <p class="font-medium"><%= contact.name %></p>
+                    <p class="text-sm text-gray-500"><%= contact.phone %></p>
+                  </div>
+                  <button type="button" class="delete-contact-btn text-red-500 hover:text-red-700 text-sm font-medium" data-id="<%= contact.id %>">
+                    Remove
+                  </button>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <p class="text-gray-400 text-center py-8 empty-msg">No contacts in this category yet.</p>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </section>
+
+    <div id="status-msg" class="text-sm text-center"></div>
+  </main>
+
+  <!-- Manual Add Modal -->
+  <div id="manual-add-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-sm mx-4">
+      <h3 class="text-lg font-semibold mb-4">Add Contact Manually</h3>
+      <p class="text-sm text-gray-500 mb-4">Category: <span id="manual-category" class="font-medium"></span></p>
+      <form id="manual-add-form" class="space-y-3">
+        <input type="text" id="manual-name" placeholder="Name" class="border rounded-lg px-3 py-2 w-full" required>
+        <input type="tel" id="manual-phone" placeholder="Phone Number" class="border rounded-lg px-3 py-2 w-full" required>
+        <div class="flex gap-2">
+          <button type="submit" class="flex-1 bg-green-600 text-white rounded-lg px-4 py-2 font-medium">Add</button>
+          <button type="button" id="cancel-manual-add" class="flex-1 border rounded-lg px-4 py-2 font-medium">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/contacts.js"></script>
+</body>
+</html>

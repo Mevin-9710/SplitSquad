@@ -43,12 +43,11 @@ app.use(express.static(resolve(__dirname, '..', 'public')));
 import webRouter from './routes/web/index.js';
 import apiSplitsRouter from './routes/api/splits.js';
 import apiEvolutionRouter from './routes/api/evolution.js';
+import apiContactsRouter from './routes/api/contacts.js';
 
-// Mount web routes at root
 app.use('/', webRouter);
-
-// Mount API routes
 app.use('/api', apiSplitsRouter);
+app.use('/api', apiContactsRouter);
 app.use('/api/evolution', apiEvolutionRouter);
 
 // Health check endpoint

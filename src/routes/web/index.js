@@ -2,6 +2,7 @@ import express from 'express';
 import { getRecentSplits, getSplitById } from '../../models/split.js';
 import { isConnected as isStandardConnected } from '../../services/whatsapp/client.js';
 import { isEvolutionConfigured, getConnectionStatus } from '../../services/evolution/client.js';
+import { getCategories, getAllContacts } from '../../models/contact.js';
 
 const router = express.Router();
 
@@ -48,6 +49,32 @@ router.get('/connect', (req, res) => {
     res.redirect('/qr');
   } catch {
     res.status(500).render('error', { message: 'Failed to load connect page' });
+  }
+});
+
+router.get('/contacts', async (req, res) => {
+  try {
+    const categories = getCategories();
+    const contacts = getAllContacts(req.creatorId);
+    const grouped = {};
+    for (const cat of categories) {
+      grouped[cat] = [];
+    }
+    for (const contact of contacts) {
+      if (!grouped[contact.category]) {
+        grouped[contact.category] = [];
+      }
+      grouped[contact.category].push(contact);
+    }
+
+    res.render('contacts', {
+      categories,
+      contacts: grouped,
+      creatorId: req.creatorId,
+      creatorName: req.creatorName,
+    });
+  } catch {
+    res.status(500).render('error', { message: 'Failed to load contacts' });
   }
 });
 

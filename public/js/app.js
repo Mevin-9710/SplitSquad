@@ -1,5 +1,9 @@
 const API_BASE = '';
 
+let selectedParticipants = [];
+let allContacts = {};
+let dialogActiveCategory = 'friends';
+
 function formatCurrency(amount) {
   if (typeof amount !== 'number') amount = parseFloat(amount) || 0;
   const rupees = amount > 100 ? amount / 100 : amount;
@@ -32,53 +36,137 @@ function createSplitCard(split) {
   return card;
 }
 
-function addParticipantRow(defaults = { name: '', phone: '', amount: '' }) {
-  const container = document.getElementById('participants-fields');
-  if (!container) return;
-  const row = document.createElement('div');
-  row.className = 'grid md:grid-cols-4 gap-2';
-  row.innerHTML = `<input type="text" class="participant-name border rounded-lg px-3 py-2" placeholder="Name" value="${escapeHtml(defaults.name)}" required><input type="text" class="participant-phone border rounded-lg px-3 py-2" placeholder="Phone Number" value="${escapeHtml(defaults.phone)}" required><input type="number" step="0.01" min="0" class="participant-amount border rounded-lg px-3 py-2" placeholder="Amount (₹)" value="${escapeHtml(defaults.amount)}" required><button type="button" class="remove-participant border rounded-lg px-3 py-2 text-sm">Remove</button>`;
-  row.querySelector('.remove-participant').addEventListener('click', () => row.remove());
-  container.appendChild(row);
+function createSelectedParticipantChip(contact) {
+  const chip = document.createElement('div');
+  chip.className = 'inline-flex items-center gap-1 bg-green-100 text-green-800 rounded-full px-3 py-1 text-sm';
+  chip.dataset.id = contact.id;
+  chip.innerHTML = `
+    <span>${escapeHtml(contact.name)}</span>
+    <button type="button" class="remove-participant ml-1 text-green-600 hover:text-green-800">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+  `;
+  chip.querySelector('.remove-participant').addEventListener('click', () => {
+    selectedParticipants = selectedParticipants.filter(p => p.id !== contact.id);
+    chip.remove();
+    updateSelectedCount();
+    renderSelectedChips();
+  });
+  return chip;
 }
 
-function collectParticipants() {
-  const names = [...document.querySelectorAll('.participant-name')];
-  const phones = [...document.querySelectorAll('.participant-phone')];
-  const amounts = [...document.querySelectorAll('.participant-amount')];
-  const participants = [];
+function renderSelectedChips() {
+  const container = document.getElementById('selected-participants');
+  if (!container) return;
+  container.innerHTML = '';
+  if (selectedParticipants.length === 0) return;
 
-  for (let i = 0; i < names.length; i++) {
-    const name = names[i].value.trim();
-    const amount = parseFloat(amounts[i].value);
-    const phone = normalizePhone(phones[i].value.trim());
-    if (!name || Number.isNaN(amount)) continue;
-    if (!phone) throw new Error(`Invalid phone number for ${name}`);
-    participants.push({ name, phone, amount });
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex flex-wrap gap-2';
+  selectedParticipants.forEach(p => {
+    wrapper.appendChild(createSelectedParticipantChip(p));
+  });
+  container.appendChild(wrapper);
+}
+
+function updateSelectedCount() {
+  const el = document.getElementById('dialog-selected-count');
+  if (el) el.textContent = `${selectedParticipants.length} selected`;
+}
+
+async function loadContacts() {
+  try {
+    const response = await fetch('/api/contacts');
+    const data = await response.json();
+    allContacts = data.contacts || {};
+    return data;
+  } catch {
+    allContacts = {};
+    return { categories: ['friends', 'family', 'co-workers'], contacts: {} };
+  }
+}
+
+function renderDialogPanel(category) {
+  const panel = document.querySelector(`.dialog-panel[data-category="${category}"]`);
+  if (!panel) return;
+
+  const contacts = allContacts[category] || [];
+  if (contacts.length === 0) {
+    panel.innerHTML = `<p class="text-gray-400 text-center py-8">No contacts in this category. <a href="/contacts" class="text-green-600 underline">Manage Participants</a></p>`;
+    return;
   }
 
-  return participants;
+  panel.innerHTML = '';
+  contacts.forEach(contact => {
+    const isSelected = selectedParticipants.some(p => p.id === contact.id);
+    const row = document.createElement('label');
+    row.className = `flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-green-50 border border-green-200' : 'hover:bg-gray-50 border border-transparent'}`;
+    row.innerHTML = `
+      <input type="checkbox" class="contact-checkbox w-4 h-4 text-green-600 rounded" value="${contact.id}" ${isSelected ? 'checked' : ''}>
+      <div class="flex-1">
+        <p class="font-medium">${escapeHtml(contact.name)}</p>
+        <p class="text-sm text-gray-500">${escapeHtml(contact.phone)}</p>
+      </div>
+    `;
+    row.querySelector('.contact-checkbox').addEventListener('change', (e) => {
+      if (e.target.checked) {
+        if (!selectedParticipants.some(p => p.id === contact.id)) {
+          selectedParticipants.push(contact);
+        }
+      } else {
+        selectedParticipants = selectedParticipants.filter(p => p.id !== contact.id);
+      }
+      updateSelectedCount();
+      renderDialogPanel(category);
+      renderSelectedChips();
+    });
+    panel.appendChild(row);
+  });
 }
 
-async function pickContacts() {
-  const status = document.getElementById('create-split-status');
+function openParticipantsDialog() {
+  const dialog = document.getElementById('participants-dialog');
+  dialog.classList.remove('hidden');
+  dialog.classList.add('flex');
+  renderDialogPanel(dialogActiveCategory);
+  updateSelectedCount();
+}
+
+function closeParticipantsDialog() {
+  const dialog = document.getElementById('participants-dialog');
+  dialog.classList.add('hidden');
+  dialog.classList.remove('flex');
+}
+
+async function addFromContactsInDialog() {
   if (!('contacts' in navigator) || !('ContactsManager' in window)) {
-    status.textContent = 'Contact picker unavailable. Use manual participant entry.';
+    alert('Contact picker not available in this browser.');
     return;
   }
 
   try {
     const props = ['name', 'tel'];
-    const contacts = await navigator.contacts.select(props, { multiple: true });
-    contacts.forEach((c) => {
+    const deviceContacts = await navigator.contacts.select(props, { multiple: true });
+
+    for (const c of deviceContacts) {
       const name = Array.isArray(c.name) ? c.name[0] : (c.name || 'Unknown');
       const tel = Array.isArray(c.tel) ? c.tel[0] : c.tel;
-      if (!tel) return;
-      addParticipantRow({ name, phone: tel, amount: '' });
-    });
-    status.textContent = contacts.length ? `Imported ${contacts.length} contacts.` : 'No contacts selected.';
+      if (!tel) continue;
+
+      const normalizedPhone = normalizePhone(tel);
+      if (!normalizedPhone) continue;
+
+      const tempContact = { id: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, name, phone: normalizedPhone, category: dialogActiveCategory };
+      if (!selectedParticipants.some(p => p.id === tempContact.id)) {
+        selectedParticipants.push(tempContact);
+      }
+    }
+
+    updateSelectedCount();
+    renderDialogPanel(dialogActiveCategory);
+    renderSelectedChips();
   } catch {
-    status.textContent = 'Contact picker access denied. Use manual participant entry.';
+    alert('Contact picker access denied.');
   }
 }
 
@@ -90,29 +178,35 @@ async function createSplit(event) {
   const description = document.getElementById('description')?.value.trim();
   const amount = parseFloat(document.getElementById('total-amount')?.value);
 
-  let participants;
+  if (!description || Number.isNaN(amount)) {
+    status.textContent = 'Please fill in description and amount.';
+    return;
+  }
+
+  if (selectedParticipants.length === 0) {
+    status.textContent = 'Please add at least one participant.';
+    return;
+  }
+
+  const perPerson = amount / selectedParticipants.length;
+
+  const participants = selectedParticipants.map(p => ({
+    name: p.name,
+    phone: p.phone,
+    amount: Math.round(perPerson * 100) / 100,
+  }));
+
   try {
-    participants = collectParticipants();
-  } catch (error) {
-    status.textContent = error.message;
-    return;
-  }
-
-  if (!description || Number.isNaN(amount) || participants.length === 0) {
-    status.textContent = 'Please fill required fields and add participants.';
-    return;
-  }
-
-  const allocated = participants.reduce((sum, p) => sum + p.amount, 0);
-  if (allocated - amount > 0.01) {
-    status.textContent = 'Participant total cannot exceed split total.';
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/splits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description, amount, participants }) });
+    const response = await fetch('/api/splits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description, amount, participants }),
+    });
     const data = await response.json();
     if (!response.ok) return void (status.textContent = data.error || 'Failed to create split.');
+
+    selectedParticipants = [];
+    renderSelectedChips();
     window.location.href = `/split/${data.id}`;
   } catch {
     status.textContent = 'Failed to create split.';
@@ -128,7 +222,7 @@ async function loadSplits() {
     const response = await fetch(`${API_BASE}/api/splits`);
     const data = await response.json();
     container.innerHTML = '';
-    const splits = Array.isArray(data) ? data : (data.splits || []);
+    const splits = Array.isArray(data.splits) ? data.splits : [];
     if (!splits.length) {
       container.classList.add('hidden');
       emptyState?.classList.remove('hidden');
@@ -141,21 +235,59 @@ async function loadSplits() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const createForm = document.getElementById('create-split-form');
-  const addParticipantBtn = document.getElementById('add-participant-btn');
-  const pickContactsBtn = document.getElementById('pick-contacts-btn');
+  const openDialogBtn = document.getElementById('open-participants-dialog');
+  const closeDialogBtn = document.getElementById('close-dialog');
+  const addSelectedBtn = document.getElementById('dialog-add-selected');
+  const addFromContactsBtn = document.getElementById('dialog-add-from-contacts');
+  const dialogTabs = document.querySelectorAll('.dialog-tab');
+  const participantsDialog = document.getElementById('participants-dialog');
+
+  if (openDialogBtn) {
+    await loadContacts();
+    openDialogBtn.addEventListener('click', openParticipantsDialog);
+  }
+
+  if (closeDialogBtn) {
+    closeDialogBtn.addEventListener('click', closeParticipantsDialog);
+  }
+
+  if (participantsDialog) {
+    participantsDialog.addEventListener('click', (e) => {
+      if (e.target === participantsDialog) closeParticipantsDialog();
+    });
+  }
+
+  if (addSelectedBtn) {
+    addSelectedBtn.addEventListener('click', () => {
+      closeParticipantsDialog();
+      renderSelectedChips();
+    });
+  }
+
+  if (addFromContactsBtn) {
+    addFromContactsBtn.addEventListener('click', addFromContactsInDialog);
+  }
+
+  dialogTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      dialogTabs.forEach(t => {
+        t.classList.remove('border-green-600', 'text-green-600');
+        t.classList.add('border-transparent', 'text-gray-500');
+      });
+      tab.classList.add('border-green-600', 'text-green-600');
+      tab.classList.remove('border-transparent', 'text-gray-500');
+
+      document.querySelectorAll('.dialog-panel').forEach(p => p.classList.add('hidden'));
+      dialogActiveCategory = tab.dataset.category;
+      document.querySelector(`.dialog-panel[data-category="${dialogActiveCategory}"]`).classList.remove('hidden');
+      renderDialogPanel(dialogActiveCategory);
+    });
+  });
 
   if (createForm) {
-    addParticipantRow();
     createForm.addEventListener('submit', createSplit);
-  }
-  addParticipantBtn?.addEventListener('click', () => addParticipantRow());
-  pickContactsBtn?.addEventListener('click', pickContacts);
-
-  if (!('contacts' in navigator) || !('ContactsManager' in window)) {
-    const hint = document.getElementById('contact-picker-hint');
-    if (hint) hint.textContent = 'Contact picker not supported in this browser. Manual entry is active.';
   }
 
   if (document.getElementById('splits-container')) loadSplits();
