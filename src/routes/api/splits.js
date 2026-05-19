@@ -2,12 +2,19 @@ import express from 'express';
 import { createSplit, getRecentSplits, getSplitById } from '../../models/split.js';
 import { addParticipant } from '../../models/participant.js';
 import { isEvolutionConfigured, sendMessage as sendEvolutionMessage, getConnectionStatus, getInstanceName } from '../../services/evolution/client.js';
-import { isConnected as isStandardConnected, sendMessage as sendStandardMessage } from '../../services/whatsapp/client.js';
+import { isConnected as isStandardConnected, sendMessage as sendStandardMessage, getOrCreateClient, getCurrentQR } from '../../services/whatsapp/client.js';
 import { normalizePhone } from '../../utils/phone.js';
 import { generateUpiUri } from '../../utils/upi.js';
 import { generateParticipantMessage } from '../../utils/whatsapp.js';
 import logger from '../../utils/logger.js';
 import { config } from '../../config/index.js';
+import { getDefaultUpiProfile as getDbDefaultUpiProfile } from '../../models/userProfile.js';
+
+let appEvents = null;
+
+export function setEvents(events) {
+  appEvents = events;
+}
 
 const router = express.Router();
 const sendRateState = new Map();
@@ -27,15 +34,21 @@ function enforceSendRateLimit(req, res, next) {
   next();
 }
 
-function getUpiPayeeForSplit(split, creatorId) {
+async function getUpiPayeeForSplit(split, creatorId) {
   if (split.payment_mode === 'merchant_direct' && split.merchant_upi_id) {
     return { pa: split.merchant_upi_id, pn: split.merchant_name || 'Merchant' };
   }
+
+  const profile = getDbDefaultUpiProfile(creatorId);
+  if (profile) {
+    return { pa: profile.upi_id, pn: profile.label || creatorId };
+  }
+
   return { pa: `${creatorId}@upi`, pn: creatorId };
 }
 
-function buildParticipantMessage(split, participant, creatorId, appBaseUrl) {
-  const payee = getUpiPayeeForSplit(split, creatorId);
+async function buildParticipantMessage(split, participant, creatorId, appBaseUrl) {
+  const payee = await getUpiPayeeForSplit(split, creatorId);
   const amountRupees = (participant.amount / 100).toFixed(2);
   const upiLink = generateUpiUri({
     pa: payee.pa,
@@ -126,14 +139,17 @@ router.post('/splits/:id/send-whatsapp', enforceSendRateLimit, async (req, res) 
   try {
     const split = getSplitById(req.params.id, req.creatorId);
     if (!split) return res.status(404).json({ success: false, error: 'Split not found' });
+
+    getOrCreateClient(req.creatorId, appEvents);
+
     const useEvolution = isEvolutionConfigured();
     if (useEvolution) {
       const status = await getConnectionStatus(req.creatorId);
       if (!status.success || !status.connected) {
         return res.status(409).json({ success: false, error: 'WhatsApp not connected for this creator. Connect from /qr first.' });
       }
-    } else if (!isStandardConnected()) {
-      return res.status(409).json({ success: false, error: 'Standard WhatsApp session not connected. Connect from /qr first.' });
+    } else if (!isStandardConnected(req.creatorId)) {
+      return res.status(409).json({ success: false, error: 'WhatsApp not connected. Scan QR from /qr to connect your WhatsApp.' });
     }
 
     const participants = split.participants || [];
@@ -143,10 +159,10 @@ router.post('/splits/:id/send-whatsapp', enforceSendRateLimit, async (req, res) 
 
     const results = [];
     for (const participant of participants) {
-      const message = buildParticipantMessage(split, participant, req.creatorId, appBaseUrl);
+      const message = await buildParticipantMessage(split, participant, req.creatorId, appBaseUrl);
       const result = useEvolution
         ? await sendEvolutionMessage(req.creatorId, participant.phone, message)
-        : await sendStandardMessage(participant.phone, message).then(() => ({ success: true })).catch((error) => ({ success: false, error: error.message }));
+        : await sendStandardMessage(req.creatorId, participant.phone, message).then(() => ({ success: true })).catch((error) => ({ success: false, error: error.message }));
       results.push({
         name: participant.name,
         phone: participant.phone,
@@ -186,22 +202,24 @@ router.post('/splits/:id/send-whatsapp/:participantId', enforceSendRateLimit, as
     const participant = split.participants?.find(p => p.id === req.params.participantId);
     if (!participant) return res.status(404).json({ success: false, error: 'Participant not found' });
 
+    getOrCreateClient(req.creatorId, appEvents);
+
     const useEvolution = isEvolutionConfigured();
     if (useEvolution) {
       const status = await getConnectionStatus(req.creatorId);
       if (!status.success || !status.connected) {
         return res.status(409).json({ success: false, error: 'WhatsApp not connected. Connect from /qr first.' });
       }
-    } else if (!isStandardConnected()) {
-      return res.status(409).json({ success: false, error: 'Standard WhatsApp session not connected. Connect from /qr first.' });
+    } else if (!isStandardConnected(req.creatorId)) {
+      return res.status(409).json({ success: false, error: 'WhatsApp not connected. Scan QR from /qr to connect your WhatsApp.' });
     }
 
     const appBaseUrl = config.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
-    const message = buildParticipantMessage(split, participant, req.creatorId, appBaseUrl);
+    const message = await buildParticipantMessage(split, participant, req.creatorId, appBaseUrl);
 
     const result = useEvolution
       ? await sendEvolutionMessage(req.creatorId, participant.phone, message)
-      : await sendStandardMessage(participant.phone, message).then(() => ({ success: true })).catch((error) => ({ success: false, error: error.message }));
+      : await sendStandardMessage(req.creatorId, participant.phone, message).then(() => ({ success: true })).catch((error) => ({ success: false, error: error.message }));
 
     logger.info('Sent individual WhatsApp message', {
       creatorId: req.creatorId,

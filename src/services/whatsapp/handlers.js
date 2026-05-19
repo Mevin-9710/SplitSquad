@@ -1,4 +1,4 @@
-import { getClient, sendMessage } from './client.js';
+import { sendMessage } from './client.js';
 import { getHistoryByPhone } from '../../models/split.js';
 import { processInput, getSessionData } from '../session/manager.js';
 import {
@@ -8,13 +8,6 @@ import {
 } from '../split/service.js';
 import logger from '../../utils/logger.js';
 
-/**
- * WhatsApp Message Handlers
- *
- * Handles all incoming messages and routes them to appropriate handlers
- */
-
-// Help message
 const HELP_MESSAGE = `
 *SplitSquad - Bill Splitting Bot*
 
@@ -40,80 +33,60 @@ Commands:
 All amounts are in rupees (₹).
 `.trim();
 
-/**
- * Handle incoming message (whatsapp-web.js format)
- * @param {Object} msg - whatsapp-web.js message object
- */
-export async function handleMessage(msg) {
+export async function handleMessage(msg, creatorId) {
   try {
-    // Extract message content
     const from = msg.from;
     const body = msg.body;
 
-    if (!from || !body) {
-      return;
-    }
+    if (!from || !body) return;
 
-    // Ignore group messages
     const isGroup = from.endsWith('@g.us');
-    if (isGroup) {
-      return;
-    }
+    if (isGroup) return;
 
-    // Extract phone number
     const phone = from.replace('@c.us', '').replace('@s.whatsapp.net', '');
 
-    if (!body.trim()) {
-      return;
-    }
+    if (!body.trim()) return;
 
-    logger.debug('Received message', { phone, text: body.substring(0, 50) });
+    logger.debug('Received message', { creatorId, phone, text: body.substring(0, 50) });
 
-    // Process the message
-    await processMessage(phone, body, msg);
+    await processMessage(creatorId, phone, body, msg);
   } catch (error) {
     logger.error('Error handling message', { error: error.message });
   }
 }
 
-/**
- * Process a message and send response
- * @param {string} phone - Phone number
- * @param {string} text - Message text
- * @param {Object} originalMessage - Original message object for replies
- */
-async function processMessage(phone, text, originalMessage) {
+async function processMessage(creatorId, phone, text, originalMessage) {
   const result = processInput(phone, text);
 
   switch (result.action) {
     case 'COMMAND':
-      await handleCommand(phone, result.command);
+      await handleCommand(creatorId, phone, result.command);
       break;
 
     case 'STATE_CHANGE':
     case 'PARTICIPANT_ADDED':
     case 'INVALID_INPUT':
-      await sendMessage(phone, result.response);
+      await sendMessage(creatorId, phone, result.response);
       break;
 
     case 'EQUAL_SPLIT':
-      await handleEqualSplit(phone);
+      await handleEqualSplit(creatorId, phone);
       break;
 
     case 'DONE':
-      await handleDone(phone);
+      await handleDone(creatorId, phone);
       break;
 
     case 'CANCEL':
-      await sendMessage(phone, 'Session cancelled. Type !new to start a new split.');
+      await sendMessage(creatorId, phone, 'Session cancelled. Type !new to start a new split.');
       break;
 
     case 'RESET':
-      await sendMessage(phone, result.response);
+      await sendMessage(creatorId, phone, result.response);
       break;
 
     case 'UNKNOWN':
-      await sendMessage(phone, result.response);
+      await sendMessage(creatorId, phone, result.response);
       break;
 
     default:
@@ -121,39 +94,30 @@ async function processMessage(phone, text, originalMessage) {
   }
 }
 
-/**
- * Handle commands
- * @param {string} phone - Phone number
- * @param {string} command - Command name
- */
-async function handleCommand(phone, command) {
+async function handleCommand(creatorId, phone, command) {
   switch (command) {
     case '!new':
-      await handleNewCommand(phone);
+      await handleNewCommand(creatorId, phone);
       break;
 
     case '!history':
-      await handleHistoryCommand(phone);
+      await handleHistoryCommand(creatorId, phone);
       break;
 
     case '!cancel':
-      await handleCancelCommand(phone);
+      await handleCancelCommand(creatorId, phone);
       break;
 
     case '!help':
-      await sendMessage(phone, HELP_MESSAGE);
+      await sendMessage(creatorId, phone, HELP_MESSAGE);
       break;
 
     default:
-      await sendMessage(phone, `Unknown command: ${command}`);
+      await sendMessage(creatorId, phone, `Unknown command: ${command}`);
   }
 }
 
-/**
- * Handle !new command - Start a new split
- * @param {string} phone - Phone number
- */
-async function handleNewCommand(phone) {
+async function handleNewCommand(creatorId, phone) {
   const { transitionTo, State } = await import('../session/manager.js');
   transitionTo(phone, State.AWAITING_AMOUNT, {
     amount: 0,
@@ -162,6 +126,7 @@ async function handleNewCommand(phone) {
   });
 
   await sendMessage(
+    creatorId,
     phone,
     `🧾 *New Bill Split*\n\n` +
     `Enter the total bill amount:\n\n` +
@@ -170,51 +135,41 @@ async function handleNewCommand(phone) {
   );
 }
 
-/**
- * Handle !history command - Show split history
- * @param {string} phone - Phone number
- */
-async function handleHistoryCommand(phone) {
+async function handleHistoryCommand(creatorId, phone) {
   try {
     const splits = getHistoryByPhone(phone);
     const message = formatHistoryMessage(splits);
-    await sendMessage(phone, message);
+    await sendMessage(creatorId, phone, message);
   } catch (error) {
     logger.error('Error fetching history', { phone, error: error.message });
-    await sendMessage(phone, 'Sorry, could not fetch history. Please try again.');
+    await sendMessage(creatorId, phone, 'Sorry, could not fetch history. Please try again.');
   }
 }
 
-/**
- * Handle !cancel command - Cancel current session
- * @param {string} phone - Phone number
- */
-async function handleCancelCommand(phone) {
+async function handleCancelCommand(creatorId, phone) {
   const { resetSession } = await import('../session/manager.js');
   resetSession(phone);
   await sendMessage(
+    creatorId,
     phone,
     '✅ Session cancelled.\n\n' +
     'Type !new to start a new split or !help for commands.'
   );
 }
 
-/**
- * Handle "equal" input - Split remaining equally
- * @param {string} phone - Phone number
- */
-async function handleEqualSplit(phone) {
+async function handleEqualSplit(creatorId, phone) {
   try {
     const sessionData = getSessionData(phone);
     const { amount, participants } = sessionData;
 
     if (!amount || amount <= 0) {
-      await sendMessage(phone, 'No amount set. Please start with !new first.');
+      await sendMessage(creatorId, phone, 'No amount set. Please start with !new first.');
       return;
     }
 
     if (participants.length === 0) {
       await sendMessage(
+        creatorId,
         phone,
         'Please add at least one participant first with format:\n' +
         'Name,Amount'
@@ -222,18 +177,17 @@ async function handleEqualSplit(phone) {
       return;
     }
 
-    // Calculate equal share for next person
     const remaining = amount - participants.reduce((sum, p) => sum + p.amountInPaise, 0);
 
     if (remaining <= 0) {
-      await sendMessage(phone, 'All amount has been allocated. Type "done" to create the split.');
+      await sendMessage(creatorId, phone, 'All amount has been allocated. Type "done" to create the split.');
       return;
     }
 
-    // Add next person with equal share
     const amountPerPerson = Math.floor(remaining / (participants.length + 1));
 
     await sendMessage(
+      creatorId,
       phone,
       `💡 Remaining: ₹${(remaining / 100).toFixed(2)}\n` +
       `Equal share for ${participants.length + 1} people: ₹${(amountPerPerson / 100).toFixed(2)} each\n\n` +
@@ -242,31 +196,27 @@ async function handleEqualSplit(phone) {
     );
   } catch (error) {
     logger.error('Error handling equal split', { phone, error: error.message });
-    await sendMessage(phone, 'Sorry, could not process equal split.');
+    await sendMessage(creatorId, phone, 'Sorry, could not process equal split.');
   }
 }
 
-/**
- * Handle "done" input - Create the split
- * @param {string} phone - Phone number
- */
-async function handleDone(phone) {
+async function handleDone(creatorId, phone) {
   try {
     const sessionData = getSessionData(phone);
 
-    // Validate we have all required data
     if (!sessionData.amount || sessionData.amount <= 0) {
-      await sendMessage(phone, 'No amount set. Please start with !new first.');
+      await sendMessage(creatorId, phone, 'No amount set. Please start with !new first.');
       return;
     }
 
     if (!sessionData.description) {
-      await sendMessage(phone, 'No description set. Please try !new again.');
+      await sendMessage(creatorId, phone, 'No description set. Please try !new again.');
       return;
     }
 
     if (!sessionData.participants || sessionData.participants.length === 0) {
       await sendMessage(
+        creatorId,
         phone,
         'No participants added.\n' +
         'Add at least one participant before finishing.'
@@ -274,33 +224,24 @@ async function handleDone(phone) {
       return;
     }
 
-    // Create the split
     const split = createNewSplit(phone, sessionData);
     const message = formatSplitMessage(split);
 
-    await sendMessage(phone, `✅ *Split Created!*\n\n${message}`);
+    await sendMessage(creatorId, phone, `✅ *Split Created!*\n\n${message}`);
   } catch (error) {
     logger.error('Error creating split', { phone, error: error.message });
-    await sendMessage(phone, 'Sorry, could not create split. Please try again.');
+    await sendMessage(creatorId, phone, 'Sorry, could not create split. Please try again.');
   }
 }
 
-/**
- * Initialize message handlers
- * @param {EventEmitter} eventEmitter - Event emitter for WhatsApp events
- */
 export async function initHandlers(eventEmitter) {
-  const client = getClient();
-
-  // Listen for incoming messages
-  client.on('message', async (msg) => {
-    // Ignore messages sent by us
+  eventEmitter.on('message', async (msg, creatorId) => {
     if (!msg.fromMe) {
-      await handleMessage(msg);
+      await handleMessage(msg, creatorId);
     }
   });
 
-  logger.info('WhatsApp message handlers initialized');
+  logger.info('WhatsApp message handlers initialized (multi-creator mode)');
 }
 
 export default {

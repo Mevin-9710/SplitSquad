@@ -82,6 +82,17 @@
     const splitData = <%- JSON.stringify(split) %>;
     const creatorId = '<%= creatorId %>';
     const appBaseUrl = window.location.origin;
+    let creatorUpiProfile = null;
+
+    async function loadCreatorUpiProfile() {
+      try {
+        const resp = await fetch('/api/profile/upi/default');
+        const data = await resp.json();
+        if (data.hasDefault) {
+          creatorUpiProfile = { pa: data.upi_id, pn: data.label || creatorId };
+        }
+      } catch {}
+    }
 
     function generateUpiUri(pa, pn, amount, note) {
       const params = new URLSearchParams();
@@ -97,6 +108,9 @@
       if (splitData.payment_mode === 'merchant_direct' && splitData.merchant_upi_id) {
         return { pa: splitData.merchant_upi_id, pn: splitData.merchant_name || 'Merchant' };
       }
+      if (creatorUpiProfile) {
+        return creatorUpiProfile;
+      }
       return { pa: creatorId + '@upi', pn: creatorId };
     }
 
@@ -104,6 +118,8 @@
       const payee = getUpiPayee();
       return generateUpiUri(payee.pa, payee.pn, amount, `SplitSquad: ${splitData.description}`);
     }
+
+    loadCreatorUpiProfile();
 
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');

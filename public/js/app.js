@@ -247,9 +247,15 @@ async function createSplit(event) {
   }
 
   const totalPaise = Math.round(amount * 100);
-  const sharesPaise = calculateEqualSplit(totalPaise, selectedParticipants.length);
 
-  const participants = selectedParticipants.map((p, i) => ({
+  const allParticipants = [
+    { id: 'creator', name: creatorId, phone: '0000000000', isCreator: true },
+    ...selectedParticipants,
+  ];
+
+  const sharesPaise = calculateEqualSplit(totalPaise, allParticipants.length);
+
+  const participants = allParticipants.map((p, i) => ({
     name: p.name,
     phone: p.phone,
     amount: Math.round((sharesPaise[i] / 100) * 100) / 100,

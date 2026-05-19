@@ -9,17 +9,19 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const splits = getRecentSplits(10, req.creatorId);
-    let evolutionConnected = false;
+    let whatsappConnected = false;
     if (isEvolutionConfigured()) {
       const status = await getConnectionStatus(req.creatorId);
-      evolutionConnected = !!(status.success && status.connected);
+      whatsappConnected = !!(status.success && status.connected);
+    } else {
+      whatsappConnected = isStandardConnected(req.creatorId);
     }
 
     res.render('index', {
       splits,
       creatorId: req.creatorId,
       creatorName: req.creatorName,
-      whatsappConnected: isStandardConnected() || evolutionConnected,
+      whatsappConnected,
     });
   } catch {
     res.status(500).render('error', { message: 'Failed to load page' });
