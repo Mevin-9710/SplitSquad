@@ -149,7 +149,7 @@
       <% } %>
     </div>
     <% } %>
-    <div id="upi-redirect-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/50">
+    <div id="upi-redirect-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/50">
       <div class="brutalist-border bg-surface-container-lowest p-6 max-w-sm w-full mx-4 brutalist-shadow">
         <div class="text-center">
           <span class="material-symbols-outlined text-6xl text-primary mb-2" data-icon="payments">payments</span>
@@ -162,6 +162,7 @@
           </div>
           <p class="font-label-sm text-label-sm text-on-surface-variant">If the app doesn't open automatically, use the link below:</p>
           <a id="upi-fallback-link" href="#" class="brutalist-border-thin bg-primary-container px-4 py-2 font-label-sm text-label-sm uppercase text-on-primary-fixed block mt-3 hover:bg-inverse-primary transition-all truncate">Open UPI App Manually →</a>
+          <button id="close-upi-modal" class="brutalist-border-thin bg-surface-container-lowest px-4 py-2 font-label-sm text-label-sm uppercase text-on-surface-variant block mt-3 w-full hover:bg-surface-variant transition-all">Close</button>
         </div>
       </div>
     </div>
@@ -191,6 +192,7 @@
     const splitDescription = '<%= split.description %>';
     const creatorParticipant = <%= JSON.stringify(split.participants.find(p => p.phone === 'CREATOR') || null) %>;
     const creatorAmount = creatorParticipant ? (creatorParticipant.amount / 100).toFixed(2) : '0.00';
+    const splitId = '<%= split.id %>';
 
     function generateUpiUri(options) {
       const { pa, pn, am, tn, cu = 'INR' } = options;
@@ -204,37 +206,68 @@
       return `upi://pay?${params.toString()}`;
     }
 
+    function showUpiModal() {
+      const upiUrl = generateUpiUri({
+        pa: merchantUpiId,
+        pn: merchantName,
+        am: creatorAmount,
+        tn: `SplitSquad: ${splitDescription}`,
+        cu: 'INR',
+      });
+
+      const modal = document.getElementById('upi-redirect-modal');
+      const fallbackLink = document.getElementById('upi-fallback-link');
+      fallbackLink.href = upiUrl;
+      modal.style.display = 'flex';
+
+      setTimeout(() => {
+        window.location.href = upiUrl;
+      }, 1500);
+    }
+
+    function hideUpiModal() {
+      const modal = document.getElementById('upi-redirect-modal');
+      modal.style.display = 'none';
+    }
+
+    document.getElementById('close-upi-modal').addEventListener('click', hideUpiModal);
+
     document.getElementById('send-whatsapp').addEventListener('click', async () => {
+      const btn = document.getElementById('send-whatsapp');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined filled" data-icon="hourglass_top">hourglass_top</span> Sending...';
+
       try {
-        const res = await fetch('/api/splits/<%= split.id %>/share', { method: 'POST' });
+        const res = await fetch('/api/splits/' + splitId + '/share', { method: 'POST' });
         const data = await res.json();
+
         if (data.success) {
           if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
-            const upiUrl = generateUpiUri({
-              pa: merchantUpiId,
-              pn: merchantName,
-              am: creatorAmount,
-              tn: `SplitSquad: ${splitDescription}`,
-              cu: 'INR',
-            });
-
-            const modal = document.getElementById('upi-redirect-modal');
-            const fallbackLink = document.getElementById('upi-fallback-link');
-            fallbackLink.href = upiUrl;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-
-            setTimeout(() => {
-              window.location.href = upiUrl;
-            }, 1500);
+            showUpiModal();
           } else {
             alert('Split shared via WhatsApp!');
           }
         } else {
-          alert('Failed to share: ' + (data.error || 'Unknown error'));
+          const errorMsg = data.error || 'Unknown error';
+          if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
+            if (confirm('WhatsApp send failed: ' + errorMsg + '\n\nDo you still want to open UPI app to pay your share?')) {
+              showUpiModal();
+            }
+          } else {
+            alert('Failed to share: ' + errorMsg);
+          }
         }
       } catch (e) {
-        alert('Failed to share split');
+        if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
+          if (confirm('Network error. Do you still want to open UPI app to pay your share?')) {
+            showUpiModal();
+          }
+        } else {
+          alert('Failed to share split: ' + e.message);
+        }
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined filled" data-icon="chat">chat</span> Send via WhatsApp';
       }
     });
   </script>
