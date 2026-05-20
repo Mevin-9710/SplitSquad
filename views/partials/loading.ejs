@@ -1,0 +1,18 @@
+<div id="loading-screen">
+  <div class="loading-title">SPLITSQUAD</div>
+  <div class="loading-dots-container">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+</div>
+<script>
+  window.addEventListener('load', () => {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+      }, 300);
+    }
+  });
+</script>
