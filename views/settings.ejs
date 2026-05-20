@@ -1,89 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>Settings - SplitSquad</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="/css/brutalist.css" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary": "#5d5f5f",
+            "surface-tint": "#785a00",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f1f1f1",
+            "outline-variant": "#d3c5ad",
+            "inverse-surface": "#2f3131",
+            "surface-bright": "#f9f9f9",
+            "on-primary-fixed-variant": "#5b4300",
+            "primary": "#785a00",
+            "tertiary-container": "#c4c5c5",
+            "surface-container-highest": "#e2e2e2",
+            "primary-container": "#f4bd31",
+            "on-primary-fixed": "#251a00",
+            "on-primary-container": "#694d00",
+            "tertiary-fixed-dim": "#c6c6c7",
+            "on-tertiary-container": "#505252",
+            "surface-container-lowest": "#ffffff",
+            "outline": "#817661",
+            "inverse-primary": "#f5be32",
+            "on-secondary-fixed-variant": "#474747",
+            "secondary": "#5e5e5e",
+            "surface-dim": "#dadada",
+            "secondary-fixed": "#e2e2e2",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#1b1b1b",
+            "surface-container-high": "#e8e8e8",
+            "tertiary-fixed": "#e2e2e2",
+            "surface-variant": "#e2e2e2",
+            "surface-container-low": "#f4f3f3",
+            "secondary-container": "#e2e2e2",
+            "on-surface": "#1a1c1c",
+            "secondary-fixed-dim": "#c6c6c6",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed": "#1a1c1c",
+            "on-tertiary": "#ffffff",
+            "primary-fixed-dim": "#f5be32",
+            "surface": "#f9f9f9",
+            "on-secondary": "#ffffff",
+            "on-background": "#1a1c1c",
+            "on-tertiary-fixed-variant": "#454747",
+            "on-surface-variant": "#4f4634",
+            "error": "#ba1a1a",
+            "background": "#f9f9f9",
+            "surface-container": "#eeeeee",
+            "error-container": "#ffdad6",
+            "primary-fixed": "#ffdf9d",
+            "on-secondary-container": "#646464"
+          },
+          "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+          "spacing": { "border-width-thin": "1px", "margin-desktop": "32px", "border-width-thick": "3px", "unit": "4px", "margin-mobile": "16px", "gutter": "16px" },
+          "fontFamily": { "headline-lg": ["Pixelify Sans", "sans-serif"], "body-md": ["Inter"], "label-sm": ["Space Mono"], "label-md": ["Space Mono"], "headline-lg-mobile": ["Pixelify Sans", "sans-serif"], "headline-md": ["Pixelify Sans", "sans-serif"], "body-lg": ["Inter"] },
+          "fontSize": { "headline-lg": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}], "label-sm": ["12px", {"lineHeight": "1.0", "fontWeight": "500"}], "label-md": ["14px", {"lineHeight": "1.0", "fontWeight": "500"}], "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}], "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}] }
+        }
+      }
+    }
+  </script>
+  <style>
+    .brutalist-border { border: 3px solid #1a1c1c; }
+    .brutalist-border-thin { border: 1px solid #1a1c1c; }
+    .brutalist-shadow { box-shadow: 4px 4px 0px #1a1c1c; }
+    .brutalist-shadow-sm { box-shadow: 2px 2px 0px #1a1c1c; }
+    .brutalist-shadow:active { box-shadow: none; transform: translate(4px, 4px); }
+    body { background-color: #f9f9f9; color: #1a1c1c; }
+  </style>
+  <style> body { min-height: max(884px, 100dvh); } </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <header class="bg-green-600 text-white p-4">
-    <div class="max-w-lg mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">Settings</h1>
-      <a class="text-sm underline" href="/">← Back</a>
-    </div>
+<body class="font-body-md bg-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 grid-bg">
+  <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-primary text-on-primary border-b-[3px] border-on-surface">
+    <a href="/" class="brutalist-border-thin p-1 hover:bg-primary-container hover:text-on-primary-container transition-colors">
+      <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+    </a>
+    <span class="font-headline-md text-headline-md uppercase tracking-tighter">SplitSquad</span>
+    <span class="material-symbols-outlined" data-icon="settings">settings</span>
   </header>
-
-  <main class="max-w-lg mx-auto px-4 py-6">
-    <!-- Creator Info -->
-    <section class="bg-white rounded-xl shadow-sm p-4 mb-6">
-      <p class="text-sm text-gray-600">Creator: <code class="bg-gray-100 px-2 py-0.5 rounded"><%= creatorName || creatorId %></code></p>
-    </section>
-
-    <!-- UPI Profiles -->
-    <section class="bg-white rounded-xl shadow-md p-5 mb-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">Your UPI IDs</h2>
-        <button type="button" id="add-upi-btn" class="bg-green-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium">+ Add</button>
+  <main class="flex-1 max-w-3xl w-full mx-auto p-margin-mobile md:p-margin-desktop space-y-6">
+    <h1 class="font-headline-lg-mobile text-headline-lg-mobile uppercase border-b-[3px] border-on-surface pb-2">Settings</h1>
+    <div class="brutalist-border brutalist-shadow bg-surface-container-lowest p-6 relative">
+      <div class="absolute -top-3 left-4 brutalist-border-thin bg-primary-container px-3 py-1">
+        <span class="font-label-sm text-label-sm uppercase">Profile</span>
       </div>
-
-      <div id="upi-list" class="space-y-3">
-        <div class="text-center py-8 text-gray-400" id="upi-empty">
-          <p>No UPI IDs saved yet.</p>
-          <p class="text-sm mt-1">Add your UPI ID to receive payments automatically.</p>
+      <p class="font-label-sm text-label-sm uppercase text-on-surface-variant mt-2">Creator ID</p>
+      <p class="font-headline-md text-headline-md mt-1" id="creator-id">SQD-<%= user.id.slice(0, 4).toUpperCase() %>-<%= user.id.slice(4, 6).toUpperCase() %></p>
+      <button id="copy-id" class="mt-3 brutalist-border brutalist-shadow-sm bg-primary-container px-4 py-2 font-label-sm text-label-sm uppercase text-on-primary-fixed flex items-center gap-2 hover:bg-inverse-primary transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+        <span class="material-symbols-outlined" data-icon="content_copy">content_copy</span>
+        Copy ID
+      </button>
+    </div>
+    <div>
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="font-headline-md text-headline-md uppercase">Your UPI IDs</h2>
+        <button id="add-upi" class="brutalist-border brutalist-shadow-sm bg-surface-container-lowest px-4 py-2 font-label-sm text-label-sm uppercase hover:bg-surface-variant transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+          + Add
+        </button>
+      </div>
+      <div id="upi-list"></div>
+      <div id="upi-empty" class="brutalist-border-thin border-dashed border-on-surface bg-surface-container p-8 flex flex-col items-center justify-center gap-3 text-center">
+        <span class="material-symbols-outlined text-4xl text-outline" data-icon="account_balance">account_balance</span>
+        <p class="font-body-md text-body-md text-on-surface-variant">No UPI IDs saved yet. Add your UPI ID to receive payments automatically.</p>
+      </div>
+    </div>
+    <div>
+      <h2 class="font-headline-md text-headline-md uppercase border-b-[3px] border-on-surface pb-2 mb-3">Test UPI Link</h2>
+      <div class="brutalist-border brutalist-shadow bg-surface-container-lowest p-6 space-y-3">
+        <div>
+          <label class="font-label-sm text-label-sm uppercase">Enter UPI ID to Test</label>
+          <input id="test-upi-input" class="w-full bg-surface-container-lowest brutalist-border-thin p-3 font-body-md focus:outline-none focus:border-[3px] focus:border-primary transition-all rounded-none mt-1" placeholder="username@bank" type="text"/>
         </div>
+        <button id="test-upi" class="brutalist-border brutalist-shadow bg-primary p-4 font-label-md text-label-md uppercase text-on-primary w-full hover:bg-primary-container hover:text-on-primary-container transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
+          Test Link
+        </button>
       </div>
-    </section>
-
-    <!-- Test UPI Link -->
-    <section class="bg-white rounded-xl shadow-md p-5 mb-6">
-      <h2 class="text-lg font-semibold mb-3">Test UPI Link</h2>
-      <div class="flex gap-2">
-        <input type="text" id="test-upi-id" placeholder="Enter UPI ID to test" class="border rounded-lg px-3 py-2 flex-1 text-sm">
-        <button type="button" id="test-upi-btn" class="bg-green-600 text-white rounded-lg px-4 py-2 text-sm font-medium">Test</button>
-      </div>
-      <p class="text-xs text-gray-500 mt-2">Opens a UPI payment of ₹1 to test if the link works with your UPI apps.</p>
-    </section>
-
-    <div id="status-msg" class="text-sm text-center"></div>
+    </div>
+    <div class="pt-4 border-t-[3px] border-on-surface">
+      <form action="/auth/logout" method="POST">
+        <button type="submit" class="w-full brutalist-border brutalist-shadow bg-error p-4 font-label-md text-label-md uppercase text-on-error hover:bg-error-container hover:text-on-error-container transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
+          Logout
+        </button>
+      </form>
+    </div>
   </main>
-
-  <!-- Add UPI Modal -->
-  <div id="add-upi-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl p-6 w-full max-w-sm">
-      <h3 class="text-lg font-semibold mb-4">Add UPI ID</h3>
-      <form id="add-upi-form" class="space-y-3">
+  <div id="add-upi-modal" class="fixed inset-0 bg-on-surface bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="brutalist-border bg-surface w-full max-w-sm p-6 space-y-4">
+      <h3 class="font-headline-md text-headline-md uppercase">Add UPI ID</h3>
+      <div class="space-y-3">
         <div>
-          <input type="text" id="new-upi-id" placeholder="e.g., rahul@oksbi" class="border rounded-lg px-3 py-2 w-full" required>
-          <p class="text-xs text-gray-500 mt-1">Format: name@bank (e.g., rahul@oksbi, 9876543210@ybl)</p>
-          <p id="upi-validation-error" class="text-xs text-red-500 mt-1 hidden"></p>
+          <label class="font-label-sm text-label-sm uppercase">UPI ID</label>
+          <input id="new-upi-id" class="w-full bg-surface-container-lowest brutalist-border-thin p-3 font-body-md focus:outline-none focus:border-[3px] focus:border-primary transition-all rounded-none" placeholder="name@bank" type="text"/>
         </div>
         <div>
-          <input type="text" id="new-upi-label" placeholder="Label (e.g., SBI, PhonePe)" class="border rounded-lg px-3 py-2 w-full">
+          <label class="font-label-sm text-label-sm uppercase">Label (optional)</label>
+          <input id="new-upi-label" class="w-full bg-surface-container-lowest brutalist-border-thin p-3 font-body-md focus:outline-none focus:border-[3px] focus:border-primary transition-all rounded-none" placeholder="e.g. SBI, GPay" type="text"/>
         </div>
-        <div class="flex gap-2">
-          <button type="submit" class="flex-1 bg-green-600 text-white rounded-lg px-4 py-2 font-medium">Save</button>
-          <button type="button" id="cancel-add-upi" class="flex-1 border rounded-lg px-4 py-2 font-medium">Cancel</button>
-        </div>
-      </form>
+      </div>
+      <div class="flex gap-2">
+        <button id="save-upi" class="flex-1 brutalist-border brutalist-shadow-sm bg-primary-container p-3 font-label-sm text-label-sm uppercase text-on-primary-fixed hover:bg-inverse-primary transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">Save</button>
+        <button id="cancel-upi" class="flex-1 brutalist-border brutalist-shadow-sm bg-surface-container-lowest p-3 font-label-sm text-label-sm uppercase hover:bg-surface-variant transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">Cancel</button>
+      </div>
     </div>
   </div>
+  <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 bg-surface px-2 border-t-[3px] border-on-surface">
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/">
+      <span class="material-symbols-outlined" data-icon="home">home</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Home</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/scan-qr">
+      <span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Scanner</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/contacts">
+      <span class="material-symbols-outlined" data-icon="groups">groups</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Squad</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/qr">
+      <span class="material-symbols-outlined" data-icon="chat">chat</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">WhatsApp</span>
+    </a>
+  </nav>
+  <script>
+    let upiProfiles = [];
 
-  <!-- Edit Label Modal -->
-  <div id="edit-label-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl p-6 w-full max-w-sm">
-      <h3 class="text-lg font-semibold mb-4">Edit Label</h3>
-      <form id="edit-label-form" class="space-y-3">
-        <input type="text" id="edit-label-input" placeholder="Label" class="border rounded-lg px-3 py-2 w-full" required>
-        <input type="hidden" id="edit-label-id">
-        <div class="flex gap-2">
-          <button type="submit" class="flex-1 bg-green-600 text-white rounded-lg px-4 py-2 font-medium">Save</button>
-          <button type="button" id="cancel-edit-label" class="flex-1 border rounded-lg px-4 py-2 font-medium">Cancel</button>
+    async function loadUpiProfiles() {
+      try {
+        const res = await fetch('/api/profile/upi');
+        const data = await res.json();
+        upiProfiles = data.profiles || [];
+        renderUpiProfiles();
+      } catch (e) {
+        console.error('Failed to load UPI profiles', e);
+      }
+    }
+
+    function renderUpiProfiles() {
+      const list = document.getElementById('upi-list');
+      const empty = document.getElementById('upi-empty');
+
+      if (upiProfiles.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      list.innerHTML = upiProfiles.map(p => `
+        <div class="brutalist-border-thin p-4 mb-2 flex justify-between items-center bg-surface-container-lowest">
+          <div>
+            <p class="font-label-md text-label-md uppercase">${p.upi_id}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant">${p.label}${p.is_default ? ' • Default' : ''}</p>
+          </div>
+          <div class="flex gap-2">
+            ${!p.is_default ? `<button class="brutalist-border-thin px-2 py-1 font-label-sm text-label-sm uppercase hover:bg-surface-variant set-default" data-id="${p.id}">Default</button>` : '<span class="brutalist-border-thin bg-primary-container px-2 py-1 font-label-sm text-label-sm uppercase">Default</span>'}
+            <button class="brutalist-border-thin px-2 py-1 font-label-sm text-label-sm uppercase text-error hover:bg-error-container delete-upi" data-id="${p.id}">Delete</button>
+          </div>
         </div>
-      </form>
-    </div>
-  </div>
+      `).join('');
 
-  <script type="module" src="/js/settings.js"></script>
+      document.querySelectorAll('.set-default').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          await fetch(`/api/profile/upi/${e.currentTarget.dataset.id}/default`, { method: 'POST' });
+          loadUpiProfiles();
+        });
+      });
+      document.querySelectorAll('.delete-upi').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          await fetch(`/api/profile/upi/${e.currentTarget.dataset.id}`, { method: 'DELETE' });
+          loadUpiProfiles();
+        });
+      });
+    }
+
+    document.getElementById('add-upi').addEventListener('click', () => {
+      document.getElementById('add-upi-modal').classList.remove('hidden');
+      document.getElementById('add-upi-modal').classList.add('flex');
+    });
+    document.getElementById('cancel-upi').addEventListener('click', () => {
+      document.getElementById('add-upi-modal').classList.add('hidden');
+      document.getElementById('add-upi-modal').classList.remove('flex');
+    });
+    document.getElementById('save-upi').addEventListener('click', async () => {
+      const upiId = document.getElementById('new-upi-id').value.trim();
+      const label = document.getElementById('new-upi-label').value.trim();
+      if (!upiId) return;
+      await fetch('/api/profile/upi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ upiId, label: label || 'UPI' })
+      });
+      document.getElementById('new-upi-id').value = '';
+      document.getElementById('new-upi-label').value = '';
+      document.getElementById('add-upi-modal').classList.add('hidden');
+      document.getElementById('add-upi-modal').classList.remove('flex');
+      loadUpiProfiles();
+    });
+
+    document.getElementById('copy-id').addEventListener('click', () => {
+      const id = document.getElementById('creator-id').textContent;
+      navigator.clipboard.writeText(id).then(() => {
+        const btn = document.getElementById('copy-id');
+        btn.innerHTML = '<span class="material-symbols-outlined" data-icon="check">check</span> Copied!';
+        setTimeout(() => { btn.innerHTML = '<span class="material-symbols-outlined" data-icon="content_copy">content_copy</span> Copy ID'; }, 2000);
+      });
+    });
+
+    document.getElementById('test-upi').addEventListener('click', () => {
+      const upiId = document.getElementById('test-upi-input').value.trim();
+      if (!upiId) return;
+      window.open(`upi://pay?pa=${encodeURIComponent(upiId)}&cu=INR`, '_blank');
+    });
+
+    loadUpiProfiles();
+  </script>
 </body>
 </html>

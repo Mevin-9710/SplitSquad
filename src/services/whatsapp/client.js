@@ -8,8 +8,8 @@ const clients = new Map();
 const clientQrs = new Map();
 const clientReady = new Map();
 
-function sanitizeCreatorId(creatorId) {
-  return creatorId.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
+function sanitizeUserId(userId) {
+  return userId.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
 }
 
 export async function initWhatsAppClient(events) {
@@ -17,17 +17,17 @@ export async function initWhatsAppClient(events) {
     mkdirSync(config.AUTH_DIR, { recursive: true });
   }
 
-  logger.info('WhatsApp multi-creator mode initialized');
-  return { isMultiCreator: true };
+  logger.info('WhatsApp multi-user mode initialized');
+  return { isMultiUser: true };
 }
 
-export function getOrCreateClient(creatorId, events) {
-  if (clients.has(creatorId)) {
-    return clients.get(creatorId);
+export function getOrCreateClient(userId, events) {
+  if (clients.has(userId)) {
+    return clients.get(userId);
   }
 
-  const safeId = sanitizeCreatorId(creatorId);
-  const authPath = `${config.AUTH_DIR}/creator_${safeId}`;
+  const safeId = sanitizeUserId(userId);
+  const authPath = `${config.AUTH_DIR}/user_${safeId}`;
 
   if (!existsSync(authPath)) {
     mkdirSync(authPath, { recursive: true });
@@ -36,99 +36,114 @@ export function getOrCreateClient(creatorId, events) {
   const client = new Client({
     authStrategy: new LocalAuth({
       dataPath: authPath,
-      clientId: `creator_${safeId}`,
+      clientId: `user_${safeId}`,
     }),
     puppeteer: {
       headless: true,
       executablePath: '/usr/bin/chromium-browser',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
     },
   });
 
   client.on('qr', (qr) => {
-    clientQrs.set(creatorId, qr);
-    clientReady.set(creatorId, false);
-    logger.info(`QR generated for creator: ${creatorId}`);
+    clientQrs.set(userId, qr);
+    clientReady.set(userId, false);
+    logger.info(`QR generated for user: ${userId}`);
   });
 
   client.on('authenticated', () => {
-    clientQrs.delete(creatorId);
-    logger.info(`Creator ${creatorId} authenticated`);
+    clientQrs.delete(userId);
+    logger.info(`User ${userId} authenticated`);
   });
 
   client.on('ready', () => {
-    clientQrs.delete(creatorId);
-    clientReady.set(creatorId, true);
-    logger.info(`Creator ${creatorId} WhatsApp ready`);
+    clientQrs.delete(userId);
+    clientReady.set(userId, true);
+    logger.info(`User ${userId} WhatsApp ready`);
   });
 
   client.on('disconnected', (reason) => {
-    clientReady.set(creatorId, false);
-    logger.warn(`Creator ${creatorId} disconnected`, { reason });
+    clientReady.set(userId, false);
+    clientQrs.delete(userId);
+    logger.warn(`User ${userId} disconnected`, { reason });
   });
 
   client.on('message', (msg) => {
     logger.debug('Message received', {
-      creatorId,
+      userId,
       from: msg.from,
       body: msg.body.substring(0, 50),
     });
     if (events) {
-      events.emit('message', msg, creatorId);
+      events.emit('message', msg, userId);
     }
   });
 
-  client.initialize().catch((error) => {
-    logger.error(`Creator ${creatorId} WhatsApp init failed`, { error: error.message });
+  client.on('auth_failure', (msg) => {
+    logger.error(`User ${userId} auth failure`, { msg });
+    clientQrs.delete(userId);
+    clientReady.set(userId, false);
   });
 
-  clients.set(creatorId, client);
+  client.on('loading_screen', (percent) => {
+    logger.debug(`User ${userId} loading screen: ${percent}%`);
+  });
+
+  client.initialize().catch((error) => {
+    logger.error(`User ${userId} WhatsApp init failed`, { error: error.message, stack: error.stack });
+    clientQrs.delete(userId);
+    clientReady.set(userId, false);
+  });
+
+  logger.info(`User ${userId} WhatsApp client initializing...`);
+
+  clients.set(userId, client);
   return client;
 }
 
-export function getClient(creatorId) {
-  if (!creatorId || !clients.has(creatorId)) {
-    throw new Error('WhatsApp client not initialized for this creator');
+export function getClient(userId) {
+  if (!userId || !clients.has(userId)) {
+    throw new Error('WhatsApp client not initialized for this user');
   }
-  return clients.get(creatorId);
+  return clients.get(userId);
 }
 
-export async function sendMessage(creatorId, to, message) {
-  const clientInstance = getClient(creatorId);
+export async function sendMessage(userId, to, message) {
+  const clientInstance = getClient(userId);
 
   try {
     const jid = formatJid(to);
     const result = await clientInstance.sendMessage(jid, message);
-    logger.debug('Message sent', { creatorId, to: jid });
+    logger.debug('Message sent', { userId, to: jid });
     return result;
   } catch (error) {
-    logger.error('Failed to send message', { creatorId, to, error: error.message });
+    logger.error('Failed to send message', { userId, to, error: error.message });
     throw error;
   }
 }
 
-export async function sendReply(creatorId, to, message, quoted) {
-  const clientInstance = getClient(creatorId);
+export async function sendReply(userId, to, message, quoted) {
+  const clientInstance = getClient(userId);
 
   try {
     const jid = formatJid(to);
     const options = quoted ? { quoted } : {};
     const result = await clientInstance.sendMessage(jid, message, options);
-    logger.debug('Reply sent', { creatorId, to: jid });
+    logger.debug('Reply sent', { userId, to: jid });
     return result;
   } catch (error) {
-    logger.error('Failed to send reply', { creatorId, to, error: error.message });
+    logger.error('Failed to send reply', { userId, to, error: error.message });
     throw error;
   }
 }
 
 export async function disconnectWhatsApp() {
-  for (const [creatorId, client] of clients) {
+  for (const [userId, client] of clients) {
     try {
       await client.destroy();
-      logger.info(`Disconnected creator: ${creatorId}`);
+      logger.info(`Disconnected user: ${userId}`);
     } catch (error) {
-      logger.error(`Error disconnecting creator ${creatorId}`, { error: error.message });
+      logger.error(`Error disconnecting user ${userId}`, { error: error.message });
     }
   }
   clients.clear();
@@ -136,29 +151,29 @@ export async function disconnectWhatsApp() {
   clientReady.clear();
 }
 
-export function isConnected(creatorId) {
-  if (!creatorId) return false;
-  const client = clients.get(creatorId);
+export function isConnected(userId) {
+  if (!userId) return false;
+  const client = clients.get(userId);
   return !!(client && client.info && client.info.wid);
 }
 
-export function getBotPhone(creatorId) {
-  const client = clients.get(creatorId);
+export function getBotPhone(userId) {
+  const client = clients.get(userId);
   if (client && client.info && client.info.wid) {
     return client.info.wid._serialized.split('@')[0];
   }
   return null;
 }
 
-export function getCurrentQR(creatorId) {
-  return clientQrs.get(creatorId) || null;
+export function getCurrentQR(userId) {
+  return clientQrs.get(userId) || null;
 }
 
-export function isClientReady(creatorId) {
-  return clientReady.get(creatorId) || false;
+export function isClientReady(userId) {
+  return clientReady.get(userId) || false;
 }
 
-export function getAllCreators() {
+export function getAllUsers() {
   return Array.from(clients.keys());
 }
 
@@ -183,5 +198,5 @@ export default {
   getBotPhone,
   getCurrentQR,
   isClientReady,
-  getAllCreators,
+  getAllUsers,
 };

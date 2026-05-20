@@ -1,55 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>Scan QR - SplitSquad</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="/css/brutalist.css" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary": "#5d5f5f",
+            "surface-tint": "#785a00",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f1f1f1",
+            "outline-variant": "#d3c5ad",
+            "inverse-surface": "#2f3131",
+            "surface-bright": "#f9f9f9",
+            "on-primary-fixed-variant": "#5b4300",
+            "primary": "#785a00",
+            "tertiary-container": "#c4c5c5",
+            "surface-container-highest": "#e2e2e2",
+            "primary-container": "#f4bd31",
+            "on-primary-fixed": "#251a00",
+            "on-primary-container": "#694d00",
+            "tertiary-fixed-dim": "#c6c6c7",
+            "on-tertiary-container": "#505252",
+            "surface-container-lowest": "#ffffff",
+            "outline": "#817661",
+            "inverse-primary": "#f5be32",
+            "on-secondary-fixed-variant": "#474747",
+            "secondary": "#5e5e5e",
+            "surface-dim": "#dadada",
+            "secondary-fixed": "#e2e2e2",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#1b1b1b",
+            "surface-container-high": "#e8e8e8",
+            "tertiary-fixed": "#e2e2e2",
+            "surface-variant": "#e2e2e2",
+            "surface-container-low": "#f4f3f3",
+            "secondary-container": "#e2e2e2",
+            "on-surface": "#1a1c1c",
+            "secondary-fixed-dim": "#c6c6c6",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed": "#1a1c1c",
+            "on-tertiary": "#ffffff",
+            "primary-fixed-dim": "#f5be32",
+            "surface": "#f9f9f9",
+            "on-secondary": "#ffffff",
+            "on-background": "#1a1c1c",
+            "on-tertiary-fixed-variant": "#454747",
+            "on-surface-variant": "#4f4634",
+            "error": "#ba1a1a",
+            "background": "#f9f9f9",
+            "surface-container": "#eeeeee",
+            "error-container": "#ffdad6",
+            "primary-fixed": "#ffdf9d",
+            "on-secondary-container": "#646464"
+          },
+          "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+          "spacing": { "border-width-thin": "1px", "margin-desktop": "32px", "border-width-thick": "3px", "unit": "4px", "margin-mobile": "16px", "gutter": "16px" },
+          "fontFamily": { "headline-lg": ["Pixelify Sans", "sans-serif"], "body-md": ["Inter"], "label-sm": ["Space Mono"], "label-md": ["Space Mono"], "headline-lg-mobile": ["Pixelify Sans", "sans-serif"], "headline-md": ["Pixelify Sans", "sans-serif"], "body-lg": ["Inter"] },
+          "fontSize": { "headline-lg": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}], "label-sm": ["12px", {"lineHeight": "1.0", "fontWeight": "500"}], "label-md": ["14px", {"lineHeight": "1.0", "fontWeight": "500"}], "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}], "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}] }
+        }
+      }
+    }
+  </script>
+  <style>
+    .brutalist-border { border: 3px solid #1a1c1c; }
+    .brutalist-border-thin { border: 1px solid #1a1c1c; }
+    .brutalist-shadow { box-shadow: 4px 4px 0px #1a1c1c; }
+    .brutalist-shadow-sm { box-shadow: 2px 2px 0px #1a1c1c; }
+    .brutalist-shadow:active { box-shadow: none; transform: translate(4px, 4px); }
+    body { background-color: #f9f9f9; color: #1a1c1c; }
+    .grid-bg {
+      background-image: linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .scanner-bracket { position: absolute; width: 40px; height: 40px; z-index: 10; }
+    .scanner-bracket-tl { top: 0; left: 0; border-top: 4px solid #1a1c1c; border-left: 4px solid #1a1c1c; }
+    .scanner-bracket-tr { top: 0; right: 0; border-top: 4px solid #1a1c1c; border-right: 4px solid #1a1c1c; }
+    .scanner-bracket-bl { bottom: 0; left: 0; border-bottom: 4px solid #1a1c1c; border-left: 4px solid #1a1c1c; }
+    .scanner-bracket-br { bottom: 0; right: 0; border-bottom: 4px solid #1a1c1c; border-right: 4px solid #1a1c1c; }
+    .scanner-container { position: relative; overflow: hidden; }
+    #qr-reader { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; z-index: 1; }
+    #qr-reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 0 !important; }
+    #qr-reader__scan_region { min-height: 100% !important; max-height: none !important; overflow: hidden !important; }
+    #qr-reader__dashboard { display: none !important; }
+    #qr-reader img[alt="Info icon"] { display: none !important; }
+    #qr-reader a { display: none !important; }
+    #scanner-placeholder { position: absolute; inset: 0; z-index: 5; }
+  </style>
+  <style> body { min-height: max(884px, 100dvh); } </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <header class="bg-green-600 text-white p-4">
-    <div class="max-w-lg mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">Scan UPI QR Code</h1>
-      <a class="text-sm underline" href="/">← Back</a>
-    </div>
+<body class="font-body-md bg-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 grid-bg">
+  <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-primary text-on-primary border-b-[3px] border-on-surface">
+    <a href="/" class="brutalist-border-thin p-1 hover:bg-primary-container hover:text-on-primary-container transition-colors">
+      <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+    </a>
+    <span class="font-headline-md text-headline-md uppercase tracking-tighter">SplitSquad</span>
+    <div class="w-10"></div>
   </header>
-
-  <main class="max-w-lg mx-auto px-4 py-6">
-    <section class="bg-white rounded-xl shadow-md p-4 mb-6">
-      <div id="qr-reader" class="w-full"></div>
-      <div id="qr-reader-status" class="text-center text-sm text-gray-500 mt-2">Tap "Start Scanner" to begin</div>
-    </section>
-
-    <section id="scan-result" class="hidden bg-white rounded-xl shadow-md p-4 mb-6">
-      <h2 class="text-lg font-semibold mb-3">Scanned QR Details</h2>
-      <div class="space-y-2 text-sm">
-        <div class="flex justify-between"><span class="text-gray-500">Payee:</span><span id="res-pn" class="font-medium"></span></div>
-        <div class="flex justify-between"><span class="text-gray-500">UPI ID:</span><span id="res-pa" class="font-mono text-xs"></span></div>
-        <div class="flex justify-between"><span class="text-gray-500">Amount:</span><span id="res-am" class="font-medium"></span></div>
-        <div class="flex justify-between"><span class="text-gray-500">Currency:</span><span id="res-cu" class="font-medium"></span></div>
+  <main class="flex-1 max-w-3xl w-full mx-auto p-margin-mobile md:p-margin-desktop flex flex-col items-center justify-center">
+    <div class="text-center mb-8">
+      <div class="inline-block brutalist-border brutalist-shadow bg-primary-container px-6 py-2 mb-2">
+        <span class="font-headline-lg-mobile text-headline-lg-mobile uppercase text-on-primary-fixed">Scan UPI</span>
       </div>
-      <button id="use-scanned-data" class="w-full bg-green-600 text-white rounded-lg px-4 py-2 mt-4 font-medium">Use This Data</button>
-    </section>
-
-    <div id="status-msg" class="text-sm text-center"></div>
-  </main>
-
-  <!-- Amount Entry Modal -->
-  <div id="amount-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl p-6 w-full max-w-sm">
-      <h3 class="text-lg font-semibold mb-2">Enter Bill Amount</h3>
-      <p class="text-sm text-gray-500 mb-4">QR code did not include an amount. Please enter the total bill amount.</p>
-      <form id="amount-form" class="space-y-3">
-        <input type="number" id="manual-amount" step="0.01" min="0.01" placeholder="Total Amount (₹)" class="border rounded-lg px-3 py-2 w-full text-lg" required>
-        <div class="flex gap-2">
-          <button type="submit" class="flex-1 bg-green-600 text-white rounded-lg px-4 py-2 font-medium">Continue</button>
-          <button type="button" id="cancel-amount" class="flex-1 border rounded-lg px-4 py-2 font-medium">Cancel</button>
-        </div>
-      </form>
+      <div class="inline-block brutalist-border bg-surface-container-lowest px-6 py-1">
+        <span class="font-headline-md text-headline-md uppercase">QR Code</span>
+      </div>
     </div>
-  </div>
+    <div class="scanner-container brutalist-border brutalist-shadow bg-surface-container-low w-full max-w-sm aspect-square relative mb-8">
+      <div class="scanner-bracket scanner-bracket-tl"></div>
+      <div class="scanner-bracket scanner-bracket-tr"></div>
+      <div class="scanner-bracket scanner-bracket-bl"></div>
+      <div class="scanner-bracket scanner-bracket-br"></div>
+      <div id="qr-reader"></div>
+      <div id="scanner-placeholder" class="flex flex-col items-center justify-center">
+        <span class="material-symbols-outlined text-6xl text-outline mb-2" data-icon="qr_code_scanner">qr_code_scanner</span>
+        <p class="font-label-md text-label-md uppercase text-on-surface-variant">Tap 'Start Scanner' to begin</p>
+      </div>
+    </div>
+    <button id="start-scanner" class="brutalist-border brutalist-shadow bg-primary-container px-8 py-4 font-label-md text-label-md uppercase text-on-primary-fixed hover:bg-inverse-primary transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
+      Start Scanner
+    </button>
+    <p id="scan-status" class="font-label-sm text-label-sm text-on-surface-variant mt-4 text-center"></p>
+  </main>
+  <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 bg-surface px-2 border-t-[3px] border-on-surface">
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/">
+      <span class="material-symbols-outlined" data-icon="home">home</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Home</span>
+    </a>
+    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container border-[2px] border-on-surface shadow-[2px_2px_0px_#1a1c1c] scale-105 p-1 min-w-[64px]" href="/scan-qr">
+      <span class="material-symbols-outlined filled" data-icon="qr_code_scanner">qr_code_scanner</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Scanner</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/contacts">
+      <span class="material-symbols-outlined" data-icon="groups">groups</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Squad</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/qr">
+      <span class="material-symbols-outlined" data-icon="chat">chat</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">WhatsApp</span>
+    </a>
+  </nav>
+  <script>
+    let html5QrCode = null;
+    let scanning = false;
 
-  <script type="module" src="/js/qr-scanner.js"></script>
+    document.getElementById('start-scanner').addEventListener('click', async function() {
+      const statusEl = document.getElementById('scan-status');
+      const placeholder = document.getElementById('scanner-placeholder');
+
+      if (scanning) {
+        if (html5QrCode) {
+          await html5QrCode.stop();
+          scanning = false;
+          placeholder.classList.remove('hidden');
+          this.textContent = 'Start Scanner';
+          statusEl.textContent = '';
+        }
+        return;
+      }
+
+      try {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        placeholder.classList.add('hidden');
+        statusEl.textContent = 'Starting camera...';
+
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            handleScannedResult(decodedText);
+          },
+          (errorMessage) => {}
+        );
+
+        scanning = true;
+        this.textContent = 'Stop Scanner';
+        statusEl.textContent = 'Point camera at UPI QR code';
+      } catch (err) {
+        statusEl.textContent = 'Camera access denied. Please allow camera permission.';
+        placeholder.classList.remove('hidden');
+      }
+    });
+
+    function handleScannedResult(decodedText) {
+      const statusEl = document.getElementById('scan-status');
+      statusEl.textContent = 'QR detected! Processing...';
+
+      if (html5QrCode && scanning) {
+        html5QrCode.stop();
+        scanning = false;
+      }
+
+      let upiData = null;
+      if (decodedText.startsWith('upi://')) {
+        const url = new URL(decodedText);
+        upiData = {
+          pa: url.searchParams.get('pa'),
+          pn: url.searchParams.get('pn'),
+          am: url.searchParams.get('am'),
+          cu: url.searchParams.get('cu') || 'INR',
+          tn: url.searchParams.get('tn'),
+        };
+      }
+
+      if (upiData && upiData.pa) {
+        window.location.href = `/?upi_pa=${encodeURIComponent(upiData.pa)}&upi_pn=${encodeURIComponent(upiData.pn || '')}&upi_am=${encodeURIComponent(upiData.am || '')}&upi_cu=${encodeURIComponent(upiData.cu || 'INR')}&upi_tn=${encodeURIComponent(upiData.tn || '')}`;
+      } else {
+        statusEl.textContent = 'Not a valid UPI QR code. Try again.';
+        document.getElementById('scanner-placeholder').classList.remove('hidden');
+        document.getElementById('start-scanner').textContent = 'Start Scanner';
+      }
+    }
+  </script>
 </body>
 </html>

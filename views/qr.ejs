@@ -1,1 +1,224 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Connect WhatsApp</title><script src="https://cdn.tailwindcss.com"></script></head><body class="bg-gray-100 min-h-screen"><main class="max-w-md mx-auto mt-12 bg-white rounded-xl p-6 shadow"><a class="text-green-600" href="/">← Back</a><h1 class="text-xl font-bold mt-2">Creator WhatsApp Connection</h1><p class="text-sm text-gray-600">Creator: <code><%= creatorName || creatorId || 'unknown' %></code></p><p id="state" class="text-sm mt-2">Checking status...</p><img id="qr-image" class="mx-auto my-4 hidden w-[220px] h-[220px] border rounded bg-white" alt="WhatsApp QR code"><p id="hint" class="text-xs text-gray-500 mb-3"></p><div class="flex gap-2"><button id="connect" class="flex-1 border rounded-lg py-2">Retry Connect</button><button id="disconnect" class="flex-1 border rounded-lg py-2">Disconnect</button></div></main><script>const stateEl=document.getElementById('state');const hintEl=document.getElementById('hint');const qrImg=document.getElementById('qr-image');async function refresh(){const statusRes=await fetch('/api/evolution/status');const status=await statusRes.json();if(status.connected){stateEl.textContent='Connected';hintEl.textContent='';qrImg.classList.add('hidden');return;}const qrRes=await fetch('/api/evolution/qr-image');const qr=await qrRes.json();if(qr.success&&qr.qrImage){qrImg.src=qr.qrImage;qrImg.classList.remove('hidden');stateEl.textContent='Scan this QR in WhatsApp linked devices';hintEl.textContent=qr.mode==='evolution'?'Using Evolution API QR':'Using standard WhatsApp QR';return;}qrImg.classList.add('hidden');stateEl.textContent='QR not available yet';hintEl.textContent='Retry in a few seconds.';}document.getElementById('connect').addEventListener('click',refresh);document.getElementById('disconnect').addEventListener('click',async()=>{await fetch('/api/evolution/disconnect',{method:'POST'});await refresh();});refresh();setInterval(refresh,3000);</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>WhatsApp - SplitSquad</title>
+  <link href="/css/brutalist.css" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary": "#5d5f5f",
+            "surface-tint": "#785a00",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f1f1f1",
+            "outline-variant": "#d3c5ad",
+            "inverse-surface": "#2f3131",
+            "surface-bright": "#f9f9f9",
+            "on-primary-fixed-variant": "#5b4300",
+            "primary": "#785a00",
+            "tertiary-container": "#c4c5c5",
+            "surface-container-highest": "#e2e2e2",
+            "primary-container": "#f4bd31",
+            "on-primary-fixed": "#251a00",
+            "on-primary-container": "#694d00",
+            "tertiary-fixed-dim": "#c6c6c7",
+            "on-tertiary-container": "#505252",
+            "surface-container-lowest": "#ffffff",
+            "outline": "#817661",
+            "inverse-primary": "#f5be32",
+            "on-secondary-fixed-variant": "#474747",
+            "secondary": "#5e5e5e",
+            "surface-dim": "#dadada",
+            "secondary-fixed": "#e2e2e2",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#1b1b1b",
+            "surface-container-high": "#e8e8e8",
+            "tertiary-fixed": "#e2e2e2",
+            "surface-variant": "#e2e2e2",
+            "surface-container-low": "#f4f3f3",
+            "secondary-container": "#e2e2e2",
+            "on-surface": "#1a1c1c",
+            "secondary-fixed-dim": "#c6c6c6",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed": "#1a1c1c",
+            "on-tertiary": "#ffffff",
+            "primary-fixed-dim": "#f5be32",
+            "surface": "#f9f9f9",
+            "on-secondary": "#ffffff",
+            "on-background": "#1a1c1c",
+            "on-tertiary-fixed-variant": "#454747",
+            "on-surface-variant": "#4f4634",
+            "error": "#ba1a1a",
+            "background": "#f9f9f9",
+            "surface-container": "#eeeeee",
+            "error-container": "#ffdad6",
+            "primary-fixed": "#ffdf9d",
+            "on-secondary-container": "#646464"
+          },
+          "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+          "spacing": { "border-width-thin": "1px", "margin-desktop": "32px", "border-width-thick": "3px", "unit": "4px", "margin-mobile": "16px", "gutter": "16px" },
+          "fontFamily": { "headline-lg": ["Pixelify Sans", "sans-serif"], "body-md": ["Inter"], "label-sm": ["Space Mono"], "label-md": ["Space Mono"], "headline-lg-mobile": ["Pixelify Sans", "sans-serif"], "headline-md": ["Pixelify Sans", "sans-serif"], "body-lg": ["Inter"] },
+          "fontSize": { "headline-lg": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}], "label-sm": ["12px", {"lineHeight": "1.0", "fontWeight": "500"}], "label-md": ["14px", {"lineHeight": "1.0", "fontWeight": "500"}], "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}], "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}] }
+        }
+      }
+    }
+  </script>
+  <style>
+    .brutalist-border { border: 3px solid #1a1c1c; }
+    .brutalist-border-thin { border: 1px solid #1a1c1c; }
+    .brutalist-shadow { box-shadow: 4px 4px 0px #1a1c1c; }
+    .brutalist-shadow-sm { box-shadow: 2px 2px 0px #1a1c1c; }
+    .brutalist-shadow:active { box-shadow: none; transform: translate(4px, 4px); }
+    body { background-color: #f9f9f9; color: #1a1c1c; }
+  </style>
+  <style> body { min-height: max(884px, 100dvh); } </style>
+</head>
+<body class="font-body-md bg-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 grid-bg">
+  <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-primary text-on-primary border-b-[3px] border-on-surface">
+    <a href="/" class="brutalist-border-thin p-1 hover:bg-primary-container hover:text-on-primary-container transition-colors">
+      <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+    </a>
+    <span class="font-headline-md text-headline-md uppercase tracking-tighter">SplitSquad</span>
+    <div class="w-10"></div>
+  </header>
+  <main class="flex-1 max-w-3xl w-full mx-auto p-margin-mobile md:p-margin-desktop space-y-4">
+    <h1 class="font-headline-lg-mobile text-headline-lg-mobile uppercase border-b-[3px] border-on-surface pb-2">WhatsApp Connection</h1>
+    <div class="brutalist-border bg-surface-container-lowest p-6 text-center">
+      <p class="font-label-sm text-label-sm uppercase text-on-surface-variant mb-2">Status</p>
+      <p id="state" class="font-headline-md text-headline-md uppercase">Checking...</p>
+      <p id="hint" class="font-label-sm text-label-sm text-on-surface-variant mt-2"></p>
+    </div>
+    <div class="brutalist-border bg-surface-container-low p-8 flex flex-col items-center justify-center">
+      <img id="qr-image" class="hidden w-52 h-52 brutalist-border-thin bg-surface-container-lowest" alt="WhatsApp QR code"/>
+      <div id="qr-placeholder" class="flex flex-col items-center gap-3">
+        <span class="material-symbols-outlined text-6xl text-outline" data-icon="qr_code_2">qr_code_2</span>
+        <p class="font-label-md text-label-md uppercase text-on-surface-variant">Connect to get QR code</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button id="connect" class="flex-1 brutalist-border brutalist-shadow bg-primary-container p-4 font-label-md text-label-md uppercase text-on-primary-fixed hover:bg-inverse-primary transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">Connect</button>
+      <button id="disconnect" class="flex-1 brutalist-border brutalist-shadow bg-surface-container-lowest p-4 font-label-md text-label-md uppercase hover:bg-surface-variant transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">Disconnect</button>
+    </div>
+  </main>
+  <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 bg-surface px-2 border-t-[3px] border-on-surface">
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/">
+      <span class="material-symbols-outlined" data-icon="home">home</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Home</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/scan-qr">
+      <span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Scanner</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/contacts">
+      <span class="material-symbols-outlined" data-icon="groups">groups</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Squad</span>
+    </a>
+    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container border-[2px] border-on-surface shadow-[2px_2px_0px_#1a1c1c] scale-105 p-1 min-w-[64px]" href="/qr">
+      <span class="material-symbols-outlined filled" data-icon="chat">chat</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">WhatsApp</span>
+    </a>
+  </nav>
+  <script>
+    const stateEl = document.getElementById('state');
+    const hintEl = document.getElementById('hint');
+    const qrImg = document.getElementById('qr-image');
+    const placeholder = document.getElementById('qr-placeholder');
+    let pollCount = 0;
+
+    async function refresh() {
+      try {
+        const statusRes = await fetch('/api/evolution/status');
+        const status = await statusRes.json();
+        console.log('Status:', status);
+        
+        if (status.connected) {
+          stateEl.textContent = 'Connected';
+          stateEl.classList.add('text-primary');
+          hintEl.textContent = 'Your WhatsApp is ready to send splits.';
+          qrImg.classList.add('hidden');
+          placeholder.classList.remove('hidden');
+          pollCount = 0;
+          return;
+        }
+
+        const qrRes = await fetch('/api/evolution/qr-image');
+        const qr = await qrRes.json();
+        console.log('QR response:', qr);
+        
+        if (qr.success && qr.qrImage) {
+          qrImg.src = qr.qrImage;
+          qrImg.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+          stateEl.textContent = 'Scan QR Code';
+          stateEl.classList.remove('text-primary');
+          hintEl.textContent = 'Open WhatsApp > Linked Devices > Link a Device';
+          pollCount = 0;
+          return;
+        }
+
+        qrImg.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        
+        if (qr.message) {
+          stateEl.textContent = 'Not Connected';
+          hintEl.textContent = qr.message;
+        } else if (qr.error) {
+          stateEl.textContent = 'Error';
+          hintEl.textContent = typeof qr.error === 'object' ? JSON.stringify(qr.error) : qr.error;
+        } else {
+          stateEl.textContent = 'Waiting for QR...';
+          hintEl.textContent = `Generating QR code... (${++pollCount}s)`;
+        }
+      } catch (e) {
+        console.error('Refresh error:', e);
+        stateEl.textContent = 'Error';
+        hintEl.textContent = 'Failed to check status. Retrying...';
+      }
+    }
+
+    document.getElementById('connect').addEventListener('click', async () => {
+      try {
+        console.log('Connecting WhatsApp...');
+        const res = await fetch('/api/evolution/connect', { method: 'POST' });
+        const data = await res.json();
+        console.log('Connect response:', data);
+        
+        if (data.success) {
+          stateEl.textContent = 'Connecting...';
+          hintEl.textContent = 'Starting WhatsApp client. QR will appear shortly...';
+          pollCount = 0;
+          setTimeout(refresh, 3000);
+        } else {
+          stateEl.textContent = 'Failed';
+          hintEl.textContent = typeof data.error === 'object' ? JSON.stringify(data.error) : (data.error || 'Connection failed. Try again.');
+        }
+      } catch (e) {
+        console.error('Connect error:', e);
+        stateEl.textContent = 'Error';
+        hintEl.textContent = 'Failed to connect. Check server logs.';
+      }
+    });
+
+    document.getElementById('disconnect').addEventListener('click', async () => {
+      try {
+        await fetch('/api/evolution/disconnect', { method: 'POST' });
+        stateEl.textContent = 'Disconnected';
+        hintEl.textContent = 'Tap Connect to generate a new QR code.';
+        qrImg.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      } catch (e) {
+        stateEl.textContent = 'Error';
+        hintEl.textContent = 'Failed to disconnect.';
+      }
+    });
+
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>

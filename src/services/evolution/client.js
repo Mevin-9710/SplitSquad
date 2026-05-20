@@ -1,25 +1,25 @@
 import { config } from '../../config/index.js';
 import logger from '../../utils/logger.js';
 
-const creatorState = new Map();
+const userState = new Map();
 
 export function isEvolutionConfigured() {
   return !!(config.EVOLUTION_API_URL && config.EVOLUTION_API_KEY);
 }
 
-export function getInstanceName(creatorId) {
-  const safeCreator = (creatorId || 'anonymous').replace(/[^a-z0-9_-]/gi, '').toLowerCase();
-  return `${config.EVOLUTION_INSTANCE_PREFIX}_${safeCreator}`;
+export function getInstanceName(userId) {
+  const safeUser = (userId || 'anonymous').replace(/[^a-z0-9_-]/gi, '').toLowerCase();
+  return `${config.EVOLUTION_INSTANCE_PREFIX}_${safeUser}`;
 }
 
-function buildUrl(endpoint, creatorId) {
+function buildUrl(endpoint, userId) {
   const baseUrl = config.EVOLUTION_API_URL.replace(/\/+$/, '');
-  const instance = getInstanceName(creatorId);
+  const instance = getInstanceName(userId);
   return `${baseUrl}${endpoint.replace('{instance}', instance)}`;
 }
 
-async function apiRequest(endpoint, creatorId, method = 'GET', body = null) {
-  const url = buildUrl(endpoint, creatorId);
+async function apiRequest(endpoint, userId, method = 'GET', body = null) {
+  const url = buildUrl(endpoint, userId);
   const headers = { apikey: config.EVOLUTION_API_KEY, 'Content-Type': 'application/json' };
   const options = { method, headers };
   if (body) options.body = JSON.stringify(body);
@@ -29,40 +29,40 @@ async function apiRequest(endpoint, creatorId, method = 'GET', body = null) {
     const data = await response.json().catch(() => ({}));
     return { success: response.ok, data, status: response.status };
   } catch (error) {
-    logger.error('Evolution API request failed', { creatorId, endpoint, error: error.message });
+    logger.error('Evolution API request failed', { userId, endpoint, error: error.message });
     return { success: false, error: error.message };
   }
 }
 
-function updateState(creatorId, patch) {
-  const current = creatorState.get(creatorId) || { qr: null, state: 'disconnected', connected: false };
+function updateState(userId, patch) {
+  const current = userState.get(userId) || { qr: null, state: 'disconnected', connected: false };
   const next = { ...current, ...patch };
-  creatorState.set(creatorId, next);
+  userState.set(userId, next);
   return next;
 }
 
-export async function connectEvolution(creatorId) {
+export async function connectEvolution(userId) {
   if (!isEvolutionConfigured()) return { success: false, error: 'Evolution API not configured' };
 
-  const instanceName = getInstanceName(creatorId);
-  const status = await apiRequest('/instance/check/{instance}', creatorId);
+  const instanceName = getInstanceName(userId);
+  const status = await apiRequest('/instance/check/{instance}', userId);
   if (status.success && status.data?.state === 'open') {
-    updateState(creatorId, { connected: true, state: 'connected', qr: null });
+    updateState(userId, { connected: true, state: 'connected', qr: null });
     return { success: true, state: 'connected', instanceName };
   }
 
-  const connectResult = await apiRequest('/instance/connect/{instance}', creatorId, 'GET');
+  const connectResult = await apiRequest('/instance/connect/{instance}', userId, 'GET');
   if (!connectResult.success) {
     return { success: false, error: connectResult.error || 'Failed to connect', instanceName };
   }
 
   const qr = connectResult.data?.base64 || connectResult.data?.qrcode || null;
-  updateState(creatorId, { connected: false, state: 'connecting', qr });
+  updateState(userId, { connected: false, state: 'connecting', qr });
   return { success: true, state: 'connecting', qr, instanceName };
 }
 
-export async function getQRCode(creatorId) {
-  const connectResult = await connectEvolution(creatorId);
+export async function getQRCode(userId) {
+  const connectResult = await connectEvolution(userId);
   if (!connectResult.success) return connectResult;
 
   return {
@@ -73,20 +73,20 @@ export async function getQRCode(creatorId) {
   };
 }
 
-export async function getConnectionStatus(creatorId) {
+export async function getConnectionStatus(userId) {
   if (!isEvolutionConfigured()) {
     return { success: false, connected: false, configured: false, error: 'Evolution API not configured' };
   }
 
-  const instanceName = getInstanceName(creatorId);
-  const result = await apiRequest('/instance/check/{instance}', creatorId);
+  const instanceName = getInstanceName(userId);
+  const result = await apiRequest('/instance/check/{instance}', userId);
   if (!result.success) {
-    updateState(creatorId, { connected: false, state: 'error' });
+    updateState(userId, { connected: false, state: 'error' });
     return { success: false, connected: false, configured: true, error: 'Failed to check status', instanceName };
   }
 
   const connected = result.data?.state === 'open';
-  updateState(creatorId, { connected, state: connected ? 'connected' : 'disconnected', qr: connected ? null : (creatorState.get(creatorId)?.qr || null) });
+  updateState(userId, { connected, state: connected ? 'connected' : 'disconnected', qr: connected ? null : (userState.get(userId)?.qr || null) });
 
   return {
     success: true,
@@ -98,22 +98,22 @@ export async function getConnectionStatus(creatorId) {
   };
 }
 
-export async function disconnectEvolution(creatorId) {
+export async function disconnectEvolution(userId) {
   if (!isEvolutionConfigured()) return { success: false, error: 'Evolution API not configured' };
-  await apiRequest('/instance/disconnect/{instance}', creatorId, 'DELETE');
-  updateState(creatorId, { connected: false, state: 'disconnected', qr: null });
+  await apiRequest('/instance/disconnect/{instance}', userId, 'DELETE');
+  updateState(userId, { connected: false, state: 'disconnected', qr: null });
   return { success: true };
 }
 
-export async function sendMessage(creatorId, to, message) {
+export async function sendMessage(userId, to, message) {
   if (!isEvolutionConfigured()) return { success: false, error: 'Evolution API not configured' };
 
-  const status = await getConnectionStatus(creatorId);
+  const status = await getConnectionStatus(userId);
   if (!status.success || !status.connected) {
-    return { success: false, error: 'Creator WhatsApp is not connected' };
+    return { success: false, error: 'User WhatsApp is not connected' };
   }
 
-  const result = await apiRequest('/message/sendText/{instance}', creatorId, 'POST', {
+  const result = await apiRequest('/message/sendText/{instance}', userId, 'POST', {
     number: to,
     text: message,
   });

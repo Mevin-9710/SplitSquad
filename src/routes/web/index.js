@@ -8,19 +8,18 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const splits = getRecentSplits(10, req.creatorId);
+    const splits = getRecentSplits(10, req.user.id);
     let whatsappConnected = false;
     if (isEvolutionConfigured()) {
-      const status = await getConnectionStatus(req.creatorId);
+      const status = await getConnectionStatus(req.user.id);
       whatsappConnected = !!(status.success && status.connected);
     } else {
-      whatsappConnected = isStandardConnected(req.creatorId);
+      whatsappConnected = isStandardConnected(req.user.id);
     }
 
     res.render('index', {
       splits,
-      creatorId: req.creatorId,
-      creatorName: req.creatorName,
+      user: req.user,
       whatsappConnected,
     });
   } catch {
@@ -30,9 +29,9 @@ router.get('/', async (req, res) => {
 
 router.get('/split/:id', (req, res) => {
   try {
-    const split = getSplitById(req.params.id, req.creatorId);
-    if (!split) return res.status(404).render('error', { message: 'Split not found for current creator' });
-    return res.render('split', { split, creatorId: req.creatorId, creatorName: req.creatorName });
+    const split = getSplitById(req.params.id, req.user.id);
+    if (!split) return res.status(404).render('error', { message: 'Split not found' });
+    return res.render('split', { split, user: req.user });
   } catch {
     res.status(500).render('error', { message: 'Failed to load split' });
   }
@@ -40,24 +39,20 @@ router.get('/split/:id', (req, res) => {
 
 router.get('/qr', (req, res) => {
   try {
-    res.render('qr', { title: 'WhatsApp Authentication', creatorId: req.creatorId, creatorName: req.creatorName });
+    res.render('qr', { user: req.user });
   } catch {
     res.status(500).render('error', { message: 'Failed to load QR page' });
   }
 });
 
 router.get('/connect', (req, res) => {
-  try {
-    res.redirect('/qr');
-  } catch {
-    res.status(500).render('error', { message: 'Failed to load connect page' });
-  }
+  res.redirect('/qr');
 });
 
 router.get('/contacts', async (req, res) => {
   try {
     const categories = getCategories();
-    const contacts = getAllContacts(req.creatorId);
+    const contacts = getAllContacts(req.user.id);
     const grouped = {};
     for (const cat of categories) {
       grouped[cat] = [];
@@ -72,8 +67,7 @@ router.get('/contacts', async (req, res) => {
     res.render('contacts', {
       categories,
       contacts: grouped,
-      creatorId: req.creatorId,
-      creatorName: req.creatorName,
+      user: req.user,
     });
   } catch {
     res.status(500).render('error', { message: 'Failed to load contacts' });
@@ -82,7 +76,7 @@ router.get('/contacts', async (req, res) => {
 
 router.get('/scan-qr', (req, res) => {
   try {
-    res.render('scan-qr', { creatorId: req.creatorId, creatorName: req.creatorName });
+    res.render('scan-qr', { user: req.user });
   } catch {
     res.status(500).render('error', { message: 'Failed to load QR scanner' });
   }
@@ -90,7 +84,7 @@ router.get('/scan-qr', (req, res) => {
 
 router.get('/settings', (req, res) => {
   try {
-    res.render('settings', { creatorId: req.creatorId, creatorName: req.creatorName });
+    res.render('settings', { user: req.user });
   } catch {
     res.status(500).render('error', { message: 'Failed to load settings' });
   }

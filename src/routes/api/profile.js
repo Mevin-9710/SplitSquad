@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.get('/profile/upi', (req, res) => {
   try {
-    const profiles = getUpiProfiles(req.creatorId);
-    const defaultProfile = getDefaultUpiProfile(req.creatorId);
+    const profiles = getUpiProfiles(req.user.id);
+    const defaultProfile = getDefaultUpiProfile(req.user.id);
     res.json({ profiles, defaultProfile });
   } catch {
     res.status(500).json({ error: 'Failed to fetch UPI profiles' });
@@ -29,7 +29,7 @@ router.post('/profile/upi', (req, res) => {
     }
 
     const profileLabel = label?.trim() || 'UPI';
-    const profile = addUpiProfile(req.creatorId, upiId.trim().toLowerCase(), profileLabel);
+    const profile = addUpiProfile(req.user.id, upiId.trim().toLowerCase(), profileLabel);
     res.status(201).json(profile);
   } catch (error) {
     if (error.message === 'UPI ID already exists') {
@@ -41,7 +41,7 @@ router.post('/profile/upi', (req, res) => {
 
 router.post('/profile/upi/:id/default', (req, res) => {
   try {
-    setUpiProfileAsDefault(req.params.id, req.creatorId);
+    setUpiProfileAsDefault(req.params.id, req.user.id);
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Failed to set default' });
@@ -54,7 +54,7 @@ router.put('/profile/upi/:id', (req, res) => {
     if (!label || typeof label !== 'string') {
       return res.status(400).json({ error: 'Label is required' });
     }
-    updateUpiProfileLabel(req.params.id, req.creatorId, label.trim());
+    updateUpiProfileLabel(req.params.id, req.user.id, label.trim());
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Failed to update label' });
@@ -63,7 +63,7 @@ router.put('/profile/upi/:id', (req, res) => {
 
 router.delete('/profile/upi/:id', (req, res) => {
   try {
-    deleteUpiProfile(req.params.id, req.creatorId);
+    deleteUpiProfile(req.params.id, req.user.id);
     res.json({ success: true });
   } catch (error) {
     if (error.message === 'Profile not found') {
@@ -75,7 +75,7 @@ router.delete('/profile/upi/:id', (req, res) => {
 
 router.get('/profile/upi/default', (req, res) => {
   try {
-    const profile = getDefaultUpiProfile(req.creatorId);
+    const profile = getDefaultUpiProfile(req.user.id);
     if (!profile) {
       return res.json({ hasDefault: false });
     }

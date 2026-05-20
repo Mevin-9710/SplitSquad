@@ -4,6 +4,7 @@ let selectedParticipants = [];
 let allContacts = {};
 let dialogActiveCategory = 'friends';
 let qrData = null;
+let currentPaymentMode = 'creator_paid';
 
 function formatCurrency(amount) {
   if (typeof amount !== 'number') amount = parseFloat(amount) || 0;
@@ -49,19 +50,19 @@ function generateWhatsAppLink(phone, message) {
 
 function createSplitCard(split) {
   const card = document.createElement('div');
-  card.className = 'bg-white rounded-xl shadow-md p-4 mb-3 hover:shadow-lg transition-shadow';
+  card.className = 'brutalist-border-thin p-4 mb-2 bg-surface-container-lowest';
   const amountDisplay = split.total_amount > 100 ? (split.total_amount / 100).toFixed(2) : split.total_amount;
   card.innerHTML = `
     <div class="flex justify-between items-start mb-2">
       <div>
-        <h3 class="font-semibold text-gray-800">${escapeHtml(split.description || 'Untitled')}</h3>
-        <p class="text-xs text-gray-500">${formatDate(split.created_at)}</p>
+        <h3 class="font-label-md text-label-md uppercase">${escapeHtml(split.description || 'Untitled')}</h3>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">${formatDate(split.created_at)}</p>
       </div>
-      <span class="text-xs px-2 py-1 rounded ${split.payment_mode === 'merchant_direct' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}">${split.payment_mode === 'merchant_direct' ? 'Pay Merchant' : 'I Paid'}</span>
+      <span class="font-label-sm text-label-sm uppercase px-2 py-1 ${split.payment_mode === 'merchant_direct' ? 'bg-surface-container-high' : 'bg-primary-container text-on-primary-fixed'}">${split.payment_mode === 'merchant_direct' ? 'Pay Merchant' : 'I Paid'}</span>
     </div>
-    <div class="flex justify-between items-center">
-      <div class="text-xl font-bold text-green-600">₹${amountDisplay}</div>
-      <a href="/split/${split.id}" class="text-green-600 hover:text-green-700 font-medium text-sm">View →</a>
+    <div class="flex justify-between items-center border-t border-on-surface pt-2">
+      <div class="font-headline-md text-headline-md">₹${amountDisplay}</div>
+      <a href="/split/${split.id}" class="font-label-sm text-label-sm uppercase text-primary hover:text-on-primary-container">View →</a>
     </div>
   `;
   return card;
@@ -69,12 +70,12 @@ function createSplitCard(split) {
 
 function createSelectedParticipantChip(contact) {
   const chip = document.createElement('div');
-  chip.className = 'inline-flex items-center gap-1 bg-green-100 text-green-800 rounded-full px-3 py-1 text-sm';
+  chip.className = 'brutalist-border-thin bg-primary-container px-3 py-2 flex items-center gap-2';
   chip.dataset.id = contact.id;
   chip.innerHTML = `
-    <span>${escapeHtml(contact.name)}</span>
-    <button type="button" class="remove-participant ml-1 text-green-600 hover:text-green-800">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <span class="font-label-sm text-label-sm uppercase text-on-primary-fixed">${escapeHtml(contact.name)}</span>
+    <button type="button" class="remove-participant text-on-primary-fixed hover:text-on-primary-container">
+      <span class="material-symbols-outlined text-4" data-icon="close">close</span>
     </button>
   `;
   chip.querySelector('.remove-participant').addEventListener('click', () => {
@@ -123,7 +124,10 @@ function renderDialogPanel(category) {
 
   const contacts = allContacts[category] || [];
   if (contacts.length === 0) {
-    panel.innerHTML = `<p class="text-gray-400 text-center py-8">No contacts. <a href="/contacts" class="text-green-600 underline">Add some</a></p>`;
+    panel.innerHTML = `<div class="flex flex-col items-center justify-center py-8 gap-2">
+      <span class="material-symbols-outlined text-4xl text-outline" data-icon="person_off">person_off</span>
+      <p class="font-label-md text-label-md uppercase text-on-surface-variant">No contacts. <a href="/contacts" class="text-primary underline">Add some</a></p>
+    </div>`;
     return;
   }
 
@@ -131,21 +135,25 @@ function renderDialogPanel(category) {
   contacts.forEach(contact => {
     const isSelected = selectedParticipants.some(p => p.id === contact.id);
     const row = document.createElement('label');
-    row.className = `flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-green-50 border border-green-200' : 'hover:bg-gray-50 border border-transparent'}`;
+    row.className = `flex items-center gap-3 p-3 border-b border-on-surface cursor-pointer transition-colors ${isSelected ? 'bg-primary-container' : 'hover:bg-surface-variant'}`;
     row.innerHTML = `
-      <input type="checkbox" class="contact-checkbox w-4 h-4 text-green-600 rounded" value="${contact.id}" ${isSelected ? 'checked' : ''}>
+      <div class="brutalist-border-thin bg-surface-container-high w-10 h-10 flex items-center justify-center flex-shrink-0">
+        <span class="font-label-sm text-label-sm uppercase">${contact.name.slice(0, 2).toUpperCase()}</span>
+      </div>
       <div class="flex-1 min-w-0">
-        <p class="font-medium truncate">${escapeHtml(contact.name)}</p>
-        <p class="text-sm text-gray-500">${escapeHtml(contact.phone)}</p>
+        <p class="font-label-md text-label-md uppercase truncate">${escapeHtml(contact.name)}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">${escapeHtml(contact.phone)}</p>
+      </div>
+      <div class="brutalist-border-thin w-6 h-6 flex items-center justify-center ${isSelected ? 'bg-primary-container' : 'bg-surface-container-lowest'}">
+        ${isSelected ? '<span class="material-symbols-outlined text-4 text-on-primary-fixed" data-icon="check">check</span>' : ''}
       </div>
     `;
-    row.querySelector('.contact-checkbox').addEventListener('change', (e) => {
-      if (e.target.checked) {
-        if (!selectedParticipants.some(p => p.id === contact.id)) {
-          selectedParticipants.push(contact);
-        }
-      } else {
+    row.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (selectedParticipants.some(p => p.id === contact.id)) {
         selectedParticipants = selectedParticipants.filter(p => p.id !== contact.id);
+      } else {
+        selectedParticipants.push(contact);
       }
       updateSelectedCount();
       renderDialogPanel(category);
@@ -220,7 +228,6 @@ async function createSplit(event) {
 
   const description = document.getElementById('description')?.value.trim();
   const amount = parseFloat(document.getElementById('total-amount')?.value);
-  const paymentMode = document.querySelector('input[name="paymentMode"]:checked')?.value || 'creator_paid';
 
   if (!description || Number.isNaN(amount)) {
     status.textContent = 'Please fill in description and amount.';
@@ -232,7 +239,7 @@ async function createSplit(event) {
     return;
   }
 
-  if (paymentMode === 'creator_paid') {
+  if (currentPaymentMode === 'creator_paid') {
     try {
       const resp = await fetch('/api/profile/upi/default');
       const data = await resp.json();
@@ -248,24 +255,30 @@ async function createSplit(event) {
 
   const totalPaise = Math.round(amount * 100);
 
-  const allParticipants = [
-    { id: 'creator', name: creatorId, phone: '0000000000', isCreator: true },
-    ...selectedParticipants,
-  ];
+  let participantsList;
+  if (currentPaymentMode === 'merchant_direct') {
+    participantsList = [
+      { id: 'creator', name: 'You', phone: '0000000000', isCreator: true },
+      ...selectedParticipants,
+    ];
+  } else {
+    participantsList = [...selectedParticipants];
+  }
 
-  const sharesPaise = calculateEqualSplit(totalPaise, allParticipants.length);
+  const sharesPaise = calculateEqualSplit(totalPaise, participantsList.length);
 
-  const participants = allParticipants.map((p, i) => ({
+  const participants = participantsList.map((p, i) => ({
     name: p.name,
-    phone: p.phone,
+    phone: p.isCreator ? 'creator' : p.phone,
     amount: Math.round((sharesPaise[i] / 100) * 100) / 100,
+    isCreator: p.isCreator || false,
   }));
 
   const splitData = {
     description,
     amount,
     participants,
-    paymentMode,
+    paymentMode: currentPaymentMode,
   };
 
   if (qrData) {
@@ -309,7 +322,7 @@ async function loadSplits() {
     emptyState?.classList.add('hidden');
     splits.forEach((split) => container.appendChild(createSplitCard(split)));
   } catch {
-    container.innerHTML = '<div class="text-center py-8 text-red-500"><p>Failed to load splits.</p></div>';
+    container.innerHTML = '<div class="text-center py-8 text-error"><p class="font-label-md text-label-md uppercase">Failed to load splits.</p></div>';
   }
 }
 
@@ -345,6 +358,57 @@ function loadQrDataFromSession() {
   }
 }
 
+function loadQrDataFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const pa = params.get('upi_pa');
+  if (!pa) return;
+
+  qrData = {
+    pa: pa,
+    pn: params.get('upi_pn') || '',
+    am: params.get('upi_am') || '',
+    cu: params.get('upi_cu') || 'INR',
+    tn: params.get('upi_tn') || '',
+  };
+
+  const display = document.getElementById('qr-data-display');
+  const nameEl = document.getElementById('qr-merchant-name');
+  const upiEl = document.getElementById('qr-upi-id');
+  const amountEl = document.getElementById('total-amount');
+
+  if (qrData.pn) nameEl.textContent = qrData.pn;
+  upiEl.textContent = qrData.pa;
+
+  if (qrData.am) {
+    amountEl.value = qrData.am;
+  }
+
+  display.classList.remove('hidden');
+
+  document.getElementById('clear-qr-data').addEventListener('click', () => {
+    qrData = null;
+    display.classList.add('hidden');
+    amountEl.value = '';
+  });
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+function setupPaymentModeToggle() {
+  const buttons = document.querySelectorAll('.payment-mode-btn');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentPaymentMode = btn.dataset.mode;
+      buttons.forEach(b => {
+        b.classList.remove('bg-primary-container', 'text-on-primary-fixed');
+        b.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
+      });
+      btn.classList.add('bg-primary-container', 'text-on-primary-fixed');
+      btn.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const createForm = document.getElementById('create-split-form');
   const openDialogBtn = document.getElementById('open-participants-dialog');
@@ -355,6 +419,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const participantsDialog = document.getElementById('participants-dialog');
 
   loadQrDataFromSession();
+  loadQrDataFromUrl();
+  setupPaymentModeToggle();
 
   if (openDialogBtn) {
     await loadContacts();
@@ -385,11 +451,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   dialogTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       dialogTabs.forEach(t => {
-        t.classList.remove('border-green-600', 'text-green-600');
-        t.classList.add('border-transparent', 'text-gray-500');
+        t.classList.remove('bg-primary-container', 'text-on-primary-fixed');
+        t.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
       });
-      tab.classList.add('border-green-600', 'text-green-600');
-      tab.classList.remove('border-transparent', 'text-gray-500');
+      tab.classList.add('bg-primary-container', 'text-on-primary-fixed');
+      tab.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
 
       document.querySelectorAll('.dialog-panel').forEach(p => p.classList.add('hidden'));
       dialogActiveCategory = tab.dataset.category;

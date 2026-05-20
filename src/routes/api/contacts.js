@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/contacts', (req, res) => {
   try {
-    const contacts = getAllContacts(req.creatorId);
+    const contacts = getAllContacts(req.user.id);
     const grouped = {};
     const categories = getCategories();
     for (const cat of categories) {
@@ -26,7 +26,7 @@ router.get('/contacts', (req, res) => {
 
 router.get('/contacts/category/:category', (req, res) => {
   try {
-    const contacts = getContactsByCategory(req.params.category, req.creatorId);
+    const contacts = getContactsByCategory(req.params.category, req.user.id);
     res.json({ category: req.params.category, contacts });
   } catch {
     res.status(500).json({ error: 'Failed to list contacts' });
@@ -47,7 +47,7 @@ router.post('/contacts', (req, res) => {
     const categories = getCategories();
     if (!categories.includes(category)) return res.status(400).json({ error: `Invalid category. Must be one of: ${categories.join(', ')}` });
 
-    const id = addContact(name.trim(), normalizedPhone, category, req.creatorId);
+    const id = addContact(name.trim(), normalizedPhone, category, req.user.id);
     res.status(201).json({ id, name: name.trim(), phone: normalizedPhone, category });
   } catch {
     res.status(500).json({ error: 'Failed to add contact' });
@@ -72,7 +72,7 @@ router.post('/contacts/bulk', (req, res) => {
       if (!normalizedPhone) continue;
       if (!category || !categories.includes(category)) continue;
 
-      const id = addContact(name, normalizedPhone, category, req.creatorId);
+      const id = addContact(name, normalizedPhone, category, req.user.id);
       added.push({ id, name, phone: normalizedPhone, category });
     }
 
@@ -84,7 +84,7 @@ router.post('/contacts/bulk', (req, res) => {
 
 router.delete('/contacts/:id', (req, res) => {
   try {
-    deleteContact(req.params.id, req.creatorId);
+    deleteContact(req.params.id, req.user.id);
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Failed to delete contact' });
@@ -99,7 +99,7 @@ router.post('/contacts/ids', (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids array is required' });
-    const contacts = getContactsByIds(ids, req.creatorId);
+    const contacts = getContactsByIds(ids, req.user.id);
     res.json({ contacts });
   } catch {
     res.status(500).json({ error: 'Failed to fetch contacts' });

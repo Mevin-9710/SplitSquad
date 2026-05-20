@@ -2,15 +2,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { getDatabase } from '../database/connection.js';
 import logger from '../utils/logger.js';
 
-export function addUpiProfile(creatorId, upiId, label = 'UPI') {
+export function addUpiProfile(userId, upiId, label = 'UPI') {
   const db = getDatabase();
   const id = uuidv4();
   const createdAt = new Date().toISOString();
 
   try {
     const existing = db.exec(
-      `SELECT COUNT(*) as cnt FROM user_profiles WHERE creator_id = ? AND upi_id = ?`,
-      [creatorId, upiId]
+      `SELECT COUNT(*) as cnt FROM user_profiles WHERE user_id = ? AND upi_id = ?`,
+      [userId, upiId]
     );
 
     if (existing.length > 0 && existing[0].values[0][0] > 0) {
@@ -18,36 +18,36 @@ export function addUpiProfile(creatorId, upiId, label = 'UPI') {
     }
 
     const isFirst = db.exec(
-      `SELECT COUNT(*) as cnt FROM user_profiles WHERE creator_id = ?`,
-      [creatorId]
+      `SELECT COUNT(*) as cnt FROM user_profiles WHERE user_id = ?`,
+      [userId]
     );
 
     const isDefault = (isFirst.length > 0 && isFirst[0].values[0][0] === 0) ? 1 : 0;
 
     db.run(
-      `INSERT INTO user_profiles (id, creator_id, upi_id, label, is_default, created_at)
+      `INSERT INTO user_profiles (id, user_id, upi_id, label, is_default, created_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, creatorId, upiId, label, isDefault, createdAt]
+      [id, userId, upiId, label, isDefault, createdAt]
     );
 
-    logger.debug('Added UPI profile', { id, creatorId, upiId, label });
-    return { id, creatorId, upiId, label, isDefault: !!isDefault, createdAt };
+    logger.debug('Added UPI profile', { id, userId, upiId, label });
+    return { id, userId, upiId, label, isDefault: !!isDefault, createdAt };
   } catch (error) {
     logger.error('Failed to add UPI profile', { error: error.message });
     throw error;
   }
 }
 
-export function getUpiProfiles(creatorId) {
+export function getUpiProfiles(userId) {
   const db = getDatabase();
 
   try {
     const result = db.exec(
-      `SELECT id, creator_id, upi_id, label, is_default, created_at
+      `SELECT id, user_id, upi_id, label, is_default, created_at
        FROM user_profiles
-       WHERE creator_id = ?
+       WHERE user_id = ?
        ORDER BY is_default DESC, created_at ASC`,
-      [creatorId]
+      [userId]
     );
 
     if (result.length === 0) return [];
@@ -58,16 +58,16 @@ export function getUpiProfiles(creatorId) {
   }
 }
 
-export function getDefaultUpiProfile(creatorId) {
+export function getDefaultUpiProfile(userId) {
   const db = getDatabase();
 
   try {
     const result = db.exec(
-      `SELECT id, creator_id, upi_id, label, is_default, created_at
+      `SELECT id, user_id, upi_id, label, is_default, created_at
        FROM user_profiles
-       WHERE creator_id = ? AND is_default = 1
+       WHERE user_id = ? AND is_default = 1
        LIMIT 1`,
-      [creatorId]
+      [userId]
     );
 
     if (result.length === 0 || result[0].values.length === 0) return null;
@@ -78,13 +78,13 @@ export function getDefaultUpiProfile(creatorId) {
   }
 }
 
-export function setUpiProfileAsDefault(id, creatorId) {
+export function setUpiProfileAsDefault(id, userId) {
   const db = getDatabase();
 
   try {
-    db.run(`UPDATE user_profiles SET is_default = 0 WHERE creator_id = ?`, [creatorId]);
-    db.run(`UPDATE user_profiles SET is_default = 1 WHERE id = ? AND creator_id = ?`, [id, creatorId]);
-    logger.debug('Set UPI profile as default', { id, creatorId });
+    db.run(`UPDATE user_profiles SET is_default = 0 WHERE user_id = ?`, [userId]);
+    db.run(`UPDATE user_profiles SET is_default = 1 WHERE id = ? AND user_id = ?`, [id, userId]);
+    logger.debug('Set UPI profile as default', { id, userId });
     return true;
   } catch (error) {
     logger.error('Failed to set default UPI profile', { error: error.message });
@@ -92,32 +92,32 @@ export function setUpiProfileAsDefault(id, creatorId) {
   }
 }
 
-export function deleteUpiProfile(id, creatorId) {
+export function deleteUpiProfile(id, userId) {
   const db = getDatabase();
 
   try {
     const profile = db.exec(
-      `SELECT is_default FROM user_profiles WHERE id = ? AND creator_id = ?`,
-      [id, creatorId]
+      `SELECT is_default FROM user_profiles WHERE id = ? AND user_id = ?`,
+      [id, userId]
     );
 
     if (profile.length === 0 || profile[0].values.length === 0) {
       throw new Error('Profile not found');
     }
 
-    db.run(`DELETE FROM user_profiles WHERE id = ? AND creator_id = ?`, [id, creatorId]);
+    db.run(`DELETE FROM user_profiles WHERE id = ? AND user_id = ?`, [id, userId]);
 
     if (profile[0].values[0][0] === 1) {
       const remaining = db.exec(
-        `SELECT id FROM user_profiles WHERE creator_id = ? LIMIT 1`,
-        [creatorId]
+        `SELECT id FROM user_profiles WHERE user_id = ? LIMIT 1`,
+        [userId]
       );
       if (remaining.length > 0 && remaining[0].values.length > 0) {
         db.run(`UPDATE user_profiles SET is_default = 1 WHERE id = ?`, [remaining[0].values[0][0]]);
       }
     }
 
-    logger.debug('Deleted UPI profile', { id, creatorId });
+    logger.debug('Deleted UPI profile', { id, userId });
     return true;
   } catch (error) {
     logger.error('Failed to delete UPI profile', { error: error.message });
@@ -125,12 +125,12 @@ export function deleteUpiProfile(id, creatorId) {
   }
 }
 
-export function updateUpiProfileLabel(id, creatorId, label) {
+export function updateUpiProfileLabel(id, userId, label) {
   const db = getDatabase();
 
   try {
-    db.run(`UPDATE user_profiles SET label = ? WHERE id = ? AND creator_id = ?`, [label, id, creatorId]);
-    logger.debug('Updated UPI profile label', { id, creatorId, label });
+    db.run(`UPDATE user_profiles SET label = ? WHERE id = ? AND user_id = ?`, [label, id, userId]);
+    logger.debug('Updated UPI profile label', { id, userId, label });
     return true;
   } catch (error) {
     logger.error('Failed to update UPI profile label', { error: error.message });

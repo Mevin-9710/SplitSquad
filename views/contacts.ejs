@@ -1,91 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Participants - SplitSquad</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Participants - SplitSquad</title>
+  <link href="/css/brutalist.css" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary": "#5d5f5f",
+            "surface-tint": "#785a00",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f1f1f1",
+            "outline-variant": "#d3c5ad",
+            "inverse-surface": "#2f3131",
+            "surface-bright": "#f9f9f9",
+            "on-primary-fixed-variant": "#5b4300",
+            "primary": "#785a00",
+            "tertiary-container": "#c4c5c5",
+            "surface-container-highest": "#e2e2e2",
+            "primary-container": "#f4bd31",
+            "on-primary-fixed": "#251a00",
+            "on-primary-container": "#694d00",
+            "tertiary-fixed-dim": "#c6c6c7",
+            "on-tertiary-container": "#505252",
+            "surface-container-lowest": "#ffffff",
+            "outline": "#817661",
+            "inverse-primary": "#f5be32",
+            "on-secondary-fixed-variant": "#474747",
+            "secondary": "#5e5e5e",
+            "surface-dim": "#dadada",
+            "secondary-fixed": "#e2e2e2",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#1b1b1b",
+            "surface-container-high": "#e8e8e8",
+            "tertiary-fixed": "#e2e2e2",
+            "surface-variant": "#e2e2e2",
+            "surface-container-low": "#f4f3f3",
+            "secondary-container": "#e2e2e2",
+            "on-surface": "#1a1c1c",
+            "secondary-fixed-dim": "#c6c6c6",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed": "#1a1c1c",
+            "on-tertiary": "#ffffff",
+            "primary-fixed-dim": "#f5be32",
+            "surface": "#f9f9f9",
+            "on-secondary": "#ffffff",
+            "on-background": "#1a1c1c",
+            "on-tertiary-fixed-variant": "#454747",
+            "on-surface-variant": "#4f4634",
+            "error": "#ba1a1a",
+            "background": "#f9f9f9",
+            "surface-container": "#eeeeee",
+            "error-container": "#ffdad6",
+            "primary-fixed": "#ffdf9d",
+            "on-secondary-container": "#646464"
+          },
+          "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+          "spacing": { "border-width-thin": "1px", "margin-desktop": "32px", "border-width-thick": "3px", "unit": "4px", "margin-mobile": "16px", "gutter": "16px" },
+          "fontFamily": { "headline-lg": ["Pixelify Sans", "sans-serif"], "body-md": ["Inter"], "label-sm": ["Space Mono"], "label-md": ["Space Mono"], "headline-lg-mobile": ["Pixelify Sans", "sans-serif"], "headline-md": ["Pixelify Sans", "sans-serif"], "body-lg": ["Inter"] },
+          "fontSize": { "headline-lg": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}], "label-sm": ["12px", {"lineHeight": "1.0", "fontWeight": "500"}], "label-md": ["14px", {"lineHeight": "1.0", "fontWeight": "500"}], "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}], "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}] }
+        }
+      }
+    }
+  </script>
+  <style>
+    .brutalist-border { border: 3px solid #1a1c1c; }
+    .brutalist-border-thin { border: 1px solid #1a1c1c; }
+    .brutalist-shadow { box-shadow: 4px 4px 0px #1a1c1c; }
+    .brutalist-shadow-sm { box-shadow: 2px 2px 0px #1a1c1c; }
+    .brutalist-shadow:active { box-shadow: none; transform: translate(4px, 4px); }
+    body { background-color: #f9f9f9; color: #1a1c1c; }
+  </style>
+  <style> body { min-height: max(884px, 100dvh); } </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <header class="bg-green-600 text-white p-6">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <h1 class="text-2xl font-bold">Manage Participants</h1>
-      <a class="text-sm underline" href="/">← Back to Home</a>
-    </div>
+<body class="font-body-md bg-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 grid-bg">
+  <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-primary text-on-primary border-b-[3px] border-on-surface">
+    <a href="/" class="brutalist-border-thin p-1 hover:bg-primary-container hover:text-on-primary-container transition-colors">
+      <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+    </a>
+    <span class="font-headline-md text-headline-md uppercase tracking-tighter">SplitSquad</span>
+    <a href="/settings" class="brutalist-border-thin p-1 hover:bg-primary-container hover:text-on-primary-container transition-colors">
+      <span class="material-symbols-outlined" data-icon="settings">settings</span>
+    </a>
   </header>
-
-  <main class="max-w-4xl mx-auto px-4 py-8">
-    <section class="bg-white rounded-xl shadow-sm p-4 mb-6">
-      <p class="text-sm text-gray-600">Creator: <code><%= creatorName || creatorId %></code></p>
-    </section>
-
-    <section class="bg-white rounded-xl shadow-md p-6 mb-8">
-      <div class="flex gap-2 mb-4 border-b">
-        <% categories.forEach((cat, i) => { %>
-          <button
-            type="button"
-            class="category-tab px-4 py-2 font-medium text-sm border-b-2 transition-colors <%= i === 0 ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700' %>"
-            data-category="<%= cat %>"
-          >
-            <%= cat.charAt(0).toUpperCase() + cat.slice(1) %>
-          </button>
-        <% }) %>
+  <main class="flex-1 max-w-3xl w-full mx-auto p-margin-mobile md:p-margin-desktop space-y-4">
+    <div class="brutalist-border brutalist-shadow bg-surface-container p-6">
+      <div class="flex justify-between items-start mb-4">
+        <h1 class="font-headline-lg-mobile text-headline-lg-mobile uppercase leading-none">Manage<br/>Participants</h1>
+        <div class="brutalist-border-thin bg-surface-container-lowest p-2 ml-4">
+          <p class="font-label-sm text-label-sm uppercase text-on-surface-variant">Creator</p>
+          <p class="font-label-sm text-label-sm uppercase">ID</p>
+          <p class="font-label-sm text-label-sm">#SS-<%= user.id.slice(0, 5).toUpperCase() %></p>
+        </div>
       </div>
-
-      <% categories.forEach((cat, i) => { %>
-        <div class="category-panel <%= i === 0 ? '' : 'hidden' %>" data-category="<%= cat %>">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold"><%= cat.charAt(0).toUpperCase() + cat.slice(1) %></h2>
-            <div class="flex gap-2">
-              <button type="button" class="add-from-contacts-btn border border-green-600 text-green-600 rounded-lg px-3 py-1.5 text-sm font-medium" data-category="<%= cat %>">
-                Add from Contacts
-              </button>
-              <button type="button" class="add-manual-btn bg-green-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium" data-category="<%= cat %>">
-                Add Manually
-              </button>
-            </div>
-          </div>
-
-          <div class="contacts-list space-y-2" data-category="<%= cat %>">
-            <% if (contacts[cat] && contacts[cat].length > 0) { %>
-              <% contacts[cat].forEach(contact => { %>
-                <div class="contact-item flex justify-between items-center bg-gray-50 rounded-lg p-3" data-id="<%= contact.id %>">
-                  <div>
-                    <p class="font-medium"><%= contact.name %></p>
-                    <p class="text-sm text-gray-500"><%= contact.phone %></p>
-                  </div>
-                  <button type="button" class="delete-contact-btn text-red-500 hover:text-red-700 text-sm font-medium" data-id="<%= contact.id %>">
-                    Remove
-                  </button>
-                </div>
-              <% }) %>
-            <% } else { %>
-              <p class="text-gray-400 text-center py-8 empty-msg">No contacts in this category yet.</p>
-            <% } %>
-          </div>
-        </div>
-      <% }) %>
-    </section>
-
-    <div id="status-msg" class="text-sm text-center"></div>
+      <p class="font-body-md text-body-md text-on-surface-variant">Add, remove, or organize the members of this squad. Ensure all contacts are verified before initiating a split.</p>
+    </div>
+    <button id="add-from-contacts" class="w-full brutalist-border brutalist-shadow bg-surface-container-lowest p-4 font-label-md text-label-md uppercase flex items-center justify-center gap-2 hover:bg-surface-variant transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
+      <span class="material-symbols-outlined" data-icon="contacts">contacts</span>
+      Add from Contacts
+    </button>
+    <button id="add-manually" class="w-full brutalist-border brutalist-shadow bg-primary-container p-4 font-label-md text-label-md uppercase text-on-primary-fixed flex items-center justify-center gap-2 hover:bg-inverse-primary transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
+      <span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+      Add Manually
+    </button>
+    <div class="flex gap-0 overflow-x-auto">
+      <button class="category-tab flex-1 px-3 py-3 font-label-sm text-label-sm uppercase brutalist-border-thin border-r-0 bg-primary-container text-on-primary-fixed" data-category="friends">Friends (<span class="cat-count-friends">0</span>)</button>
+      <button class="category-tab flex-1 px-3 py-3 font-label-sm text-label-sm uppercase brutalist-border-thin border-r-0 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-variant" data-category="family">Family (<span class="cat-count-family">0</span>)</button>
+      <button class="category-tab flex-1 px-3 py-3 font-label-sm text-label-sm uppercase brutalist-border-thin bg-surface-container-lowest text-on-surface-variant hover:bg-surface-variant" data-category="co-workers">Co-workers (<span class="cat-count-co-workers">0</span>)</button>
+    </div>
+    <div class="border-t-[3px] border-on-surface"></div>
+    <div id="contacts-list" class="brutalist-border">
+    </div>
   </main>
-
-  <!-- Manual Add Modal -->
-  <div id="manual-add-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-6 w-full max-w-sm mx-4">
-      <h3 class="text-lg font-semibold mb-4">Add Contact Manually</h3>
-      <p class="text-sm text-gray-500 mb-4">Category: <span id="manual-category" class="font-medium"></span></p>
-      <form id="manual-add-form" class="space-y-3">
-        <input type="text" id="manual-name" placeholder="Name" class="border rounded-lg px-3 py-2 w-full" required>
-        <input type="tel" id="manual-phone" placeholder="Phone Number" class="border rounded-lg px-3 py-2 w-full" required>
-        <div class="flex gap-2">
-          <button type="submit" class="flex-1 bg-green-600 text-white rounded-lg px-4 py-2 font-medium">Add</button>
-          <button type="button" id="cancel-manual-add" class="flex-1 border rounded-lg px-4 py-2 font-medium">Cancel</button>
+  <div id="add-contact-modal" class="fixed inset-0 bg-on-surface bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="brutalist-border bg-surface w-full max-w-sm p-6 space-y-4">
+      <h3 class="font-headline-md text-headline-md uppercase">Add Contact</h3>
+      <div class="space-y-3">
+        <div>
+          <label class="font-label-sm text-label-sm uppercase">Name</label>
+          <input id="contact-name" class="w-full bg-surface-container-lowest brutalist-border-thin p-3 font-body-md focus:outline-none focus:border-[3px] focus:border-primary transition-all rounded-none" placeholder="Enter name" type="text"/>
         </div>
-      </form>
+        <div>
+          <label class="font-label-sm text-label-sm uppercase">Phone</label>
+          <input id="contact-phone" class="w-full bg-surface-container-lowest brutalist-border-thin p-3 font-body-md focus:outline-none focus:border-[3px] focus:border-primary transition-all rounded-none" placeholder="Enter phone number" type="text"/>
+        </div>
+        <div>
+          <label class="font-label-sm text-label-sm uppercase">Category</label>
+          <select id="contact-category" class="w-full bg-surface-container-lowest brutalist-border-thin p-3 font-body-md focus:outline-none focus:border-[3px] focus:border-primary transition-all rounded-none appearance-none">
+            <option value="friends">Friends</option>
+            <option value="family">Family</option>
+            <option value="co-workers">Co-workers</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button id="save-contact" class="flex-1 brutalist-border brutalist-shadow-sm bg-primary-container p-3 font-label-sm text-label-sm uppercase text-on-primary-fixed hover:bg-inverse-primary transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">Save</button>
+        <button id="cancel-contact" class="flex-1 brutalist-border brutalist-shadow-sm bg-surface-container-lowest p-3 font-label-sm text-label-sm uppercase hover:bg-surface-variant transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">Cancel</button>
+      </div>
     </div>
   </div>
+  <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 bg-surface px-2 border-t-[3px] border-on-surface">
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/">
+      <span class="material-symbols-outlined" data-icon="home">home</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Home</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/scan-qr">
+      <span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Scanner</span>
+    </a>
+    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container border-[2px] border-on-surface shadow-[2px_2px_0px_#1a1c1c] scale-105 p-1 min-w-[64px]" href="/contacts">
+      <span class="material-symbols-outlined filled" data-icon="groups">groups</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">Squad</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/qr">
+      <span class="material-symbols-outlined" data-icon="chat">chat</span>
+      <span class="font-label-sm text-label-sm uppercase mt-1">WhatsApp</span>
+    </a>
+  </nav>
+  <script>
+    let contacts = [];
+    let activeCategory = 'friends';
 
-  <script type="module" src="/js/contacts.js"></script>
+    async function loadContacts() {
+      try {
+        const res = await fetch('/api/contacts');
+        const data = await res.json();
+        contacts = Object.values(data.contacts || {}).flat();
+        renderContacts();
+        updateCategoryCounts();
+      } catch (e) {
+        console.error('Failed to load contacts', e);
+        contacts = [];
+        renderContacts();
+      }
+    }
+
+    function renderContacts() {
+      const list = document.getElementById('contacts-list');
+      const filtered = contacts.filter(c => c.category === activeCategory);
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="p-8 flex flex-col items-center justify-center bg-surface-container-low text-center gap-2">
+          <span class="material-symbols-outlined text-4xl text-outline" data-icon="person_off">person_off</span>
+          <p class="font-body-md text-body-md text-on-surface-variant">No contacts in ${activeCategory}</p>
+        </div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(c => `
+        <div class="flex items-center gap-3 p-4 border-b-[1px] border-on-surface last:border-b-0">
+          <div class="brutalist-border-thin bg-surface-container-high w-12 h-12 flex items-center justify-center flex-shrink-0">
+            <span class="font-label-md text-label-md uppercase">${c.name.slice(0, 2).toUpperCase()}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-label-md text-label-md uppercase truncate">${c.name}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant">${c.phone}</p>
+          </div>
+          <button class="brutalist-border-thin p-2 text-error hover:bg-error-container transition-colors delete-contact" data-id="${c.id}">
+            <span class="material-symbols-outlined text-error" data-icon="delete">delete</span>
+          </button>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.delete-contact').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.dataset.id;
+          await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
+          loadContacts();
+        });
+      });
+    }
+
+    function updateCategoryCounts() {
+      const counts = { friends: 0, family: 0, 'co-workers': 0 };
+      contacts.forEach(c => { if (counts[c.category] !== undefined) counts[c.category]++; });
+      document.querySelector('.cat-count-friends').textContent = counts.friends;
+      document.querySelector('.cat-count-family').textContent = counts.family;
+      document.querySelector('.cat-count-co-workers').textContent = counts['co-workers'];
+    }
+
+    document.querySelectorAll('.category-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.category-tab').forEach(t => {
+          t.classList.remove('bg-primary-container', 'text-on-primary-fixed');
+          t.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
+        });
+        tab.classList.add('bg-primary-container', 'text-on-primary-fixed');
+        tab.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+        activeCategory = tab.dataset.category;
+        renderContacts();
+      });
+    });
+
+    document.getElementById('add-manually').addEventListener('click', () => {
+      document.getElementById('add-contact-modal').classList.remove('hidden');
+      document.getElementById('add-contact-modal').classList.add('flex');
+    });
+
+    document.getElementById('cancel-contact').addEventListener('click', () => {
+      document.getElementById('add-contact-modal').classList.add('hidden');
+      document.getElementById('add-contact-modal').classList.remove('flex');
+    });
+
+    document.getElementById('save-contact').addEventListener('click', async () => {
+      const name = document.getElementById('contact-name').value.trim();
+      const phone = document.getElementById('contact-phone').value.trim();
+      const category = document.getElementById('contact-category').value;
+
+      if (!name || !phone) return;
+
+      await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, category })
+      });
+
+      document.getElementById('contact-name').value = '';
+      document.getElementById('contact-phone').value = '';
+      document.getElementById('add-contact-modal').classList.add('hidden');
+      document.getElementById('add-contact-modal').classList.remove('flex');
+      loadContacts();
+    });
+
+    document.getElementById('add-from-contacts').addEventListener('click', () => {
+      if ('contacts' in navigator && 'select' in navigator.contacts) {
+        navigator.contacts.select(['name', 'tel'], { multiple: true })
+          .then(contacts => {
+            contacts.forEach(async (c) => {
+              const name = c.name?.[0] || 'Unknown';
+              const phone = c.tel?.[0] || '';
+              if (name && phone) {
+                await fetch('/api/contacts', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ name, phone, category: activeCategory })
+                });
+              }
+            });
+            loadContacts();
+          })
+          .catch(() => {});
+      } else {
+        document.getElementById('add-contact-modal').classList.remove('hidden');
+        document.getElementById('add-contact-modal').classList.add('flex');
+      }
+    });
+
+    loadContacts();
+  </script>
 </body>
 </html>
