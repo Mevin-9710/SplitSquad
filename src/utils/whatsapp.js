@@ -12,6 +12,7 @@ export function generateParticipantMessage(options) {
     splitTitle,
     upiLink,
     splitUrl,
+    verifyUrl,
     currency = '₹',
   } = options;
 
@@ -25,9 +26,18 @@ export function generateParticipantMessage(options) {
     '',
     `📋 View split details:`,
     splitUrl,
-    '',
-    '— Sent via SplitSquad',
   ];
+
+  if (verifyUrl) {
+    lines.push('');
+    lines.push('✅ After payment, click here to verify:');
+    lines.push(verifyUrl);
+    lines.push('');
+    lines.push('⚠️ This link is single-use. Verify only after payment is complete.');
+  }
+
+  lines.push('');
+  lines.push('— Sent via SplitSquad');
 
   return lines.join('\n');
 }

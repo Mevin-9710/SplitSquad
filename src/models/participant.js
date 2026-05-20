@@ -25,17 +25,18 @@ function objectFromRow(columns, values) {
  * @param {string} name - Participant name
  * @param {string} phone - Participant phone number
  * @param {number} amount - Amount in paise
+ * @param {string} verificationCode - Unique verification code
  * @returns {string} - The created participant ID
  */
-export function addParticipant(splitId, name, phone, amount) {
+export function addParticipant(splitId, name, phone, amount, verificationCode = null) {
   const db = getDatabase();
   const id = uuidv4();
 
   try {
     db.run(`
-      INSERT INTO participants (id, split_id, name, phone, amount, settled)
-      VALUES (?, ?, ?, ?, ?, 0)
-    `, [id, splitId, name, phone, amount]);
+      INSERT INTO participants (id, split_id, name, phone, amount, settled, verification_code, participant_verified)
+      VALUES (?, ?, ?, ?, ?, 0, ?, 0)
+    `, [id, splitId, name, phone, amount, verificationCode]);
     logger.debug('Added participant to split', { id, splitId, name, phone, amount });
     return id;
   } catch (error) {
@@ -54,7 +55,7 @@ export function getParticipantsBySplitId(splitId) {
 
   try {
     const result = db.exec(`
-      SELECT id, split_id, name, phone, amount, settled, settled_at
+      SELECT id, split_id, name, phone, amount, settled, settled_at, verification_code, participant_verified
       FROM participants
       WHERE split_id = ?
       ORDER BY rowid
@@ -138,10 +139,77 @@ export function removeParticipant(id) {
   }
 }
 
+/**
+ * Get participant by verification code
+ * @param {string} code - Verification code
+ * @returns {object|null} - Participant object or null
+ */
+export function getParticipantByVerificationCode(code) {
+  const db = getDatabase();
+
+  try {
+    const result = db.exec(`
+      SELECT p.id, p.split_id, p.name, p.phone, p.amount, p.settled, p.settled_at, p.verification_code, p.participant_verified,
+             s.description as split_description, s.total_amount as split_total, s.payment_mode, s.merchant_upi_id, s.merchant_name, s.merchant_currency, s.created_by
+      FROM participants p
+      JOIN splits s ON p.split_id = s.id
+      WHERE p.verification_code = ?
+    `, [code]);
+
+    if (result.length === 0 || result[0].values.length === 0) {
+      return null;
+    }
+
+    return objectFromRow(result[0].columns, result[0].values[0]);
+  } catch (error) {
+    logger.error('Failed to get participant by verification code', { code, error: error.message });
+    throw error;
+  }
+}
+
+/**
+ * Mark participant as verified (one-way, single-use)
+ * @param {string} id - Participant ID
+ * @returns {object} - { success: boolean, alreadyVerified: boolean }
+ */
+export function markParticipantVerified(id) {
+  const db = getDatabase();
+
+  try {
+    const checkResult = db.exec(`
+      SELECT participant_verified FROM participants WHERE id = ?
+    `, [id]);
+
+    if (checkResult.length === 0 || checkResult[0].values.length === 0) {
+      return { success: false, alreadyVerified: false, notFound: true };
+    }
+
+    const alreadyVerified = checkResult[0].values[0][0] === 1;
+    if (alreadyVerified) {
+      return { success: false, alreadyVerified: true };
+    }
+
+    const verifiedAt = new Date().toISOString();
+    db.run(`
+      UPDATE participants
+      SET participant_verified = 1, settled = 1, settled_at = ?
+      WHERE id = ?
+    `, [verifiedAt, id]);
+
+    logger.debug('Marked participant as verified', { id });
+    return { success: true, alreadyVerified: false };
+  } catch (error) {
+    logger.error('Failed to mark participant as verified', { id, error: error.message });
+    throw error;
+  }
+}
+
 export default {
   addParticipant,
   getParticipantsBySplitId,
   updateSettled,
   getTotalAllocated,
   removeParticipant,
+  getParticipantByVerificationCode,
+  markParticipantVerified,
 };

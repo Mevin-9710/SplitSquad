@@ -39,7 +39,7 @@ export function getSplitById(id, createdBy = null) {
 
     const split = objectFromRow(splitResult[0].columns, splitResult[0].values[0]);
     const participantsResult = db.exec(
-      `SELECT id, split_id, name, phone, amount, settled, settled_at
+      `SELECT id, split_id, name, phone, amount, settled, settled_at, verification_code, participant_verified
        FROM participants WHERE split_id = ? ORDER BY rowid`,
       [id]
     );
@@ -75,7 +75,7 @@ export function getRecentSplits(limit = 20, createdBy = null) {
     const splits = splitsResult[0].values.map((row) => objectFromRow(splitsResult[0].columns, row));
     return splits.map((split) => {
       const participantsResult = db.exec(
-        `SELECT id, split_id, name, phone, amount, settled, settled_at
+        `SELECT id, split_id, name, phone, amount, settled, settled_at, verification_code, participant_verified
          FROM participants WHERE split_id = ?`,
         [split.id]
       );
@@ -111,7 +111,7 @@ export function getHistoryByPhone(phone) {
     const splits = splitsResult[0].values.map((row) => objectFromRow(splitsResult[0].columns, row));
     return splits.map((split) => {
       const participantsResult = db.exec(
-        `SELECT id, split_id, name, phone, amount, settled, settled_at
+        `SELECT id, split_id, name, phone, amount, settled, settled_at, verification_code, participant_verified
          FROM participants WHERE split_id = ?`,
         [split.id]
       );

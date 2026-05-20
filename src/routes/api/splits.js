@@ -9,6 +9,7 @@ import { generateParticipantMessage } from '../../utils/whatsapp.js';
 import logger from '../../utils/logger.js';
 import { config } from '../../config/index.js';
 import { getDefaultUpiProfile as getDbDefaultUpiProfile } from '../../models/userProfile.js';
+import { v4 as uuidv4 } from 'uuid';
 
 let appEvents = null;
 
@@ -58,6 +59,7 @@ async function buildParticipantMessage(split, participant, userId, appBaseUrl) {
     cu: split.merchant_currency || 'INR',
   });
   const splitUrl = `${appBaseUrl}/split/${split.id}`;
+  const verifyUrl = participant.verification_code ? `${appBaseUrl}/verify/${participant.verification_code}` : null;
 
   return generateParticipantMessage({
     participantName: participant.name,
@@ -65,6 +67,7 @@ async function buildParticipantMessage(split, participant, userId, appBaseUrl) {
     splitTitle: split.description,
     upiLink,
     splitUrl,
+    verifyUrl,
   });
 }
 
@@ -116,7 +119,8 @@ router.post('/splits', (req, res) => {
 
     const splitId = createSplit(description.trim(), totalPaise, req.user.id, splitOptions);
     for (const participant of validated) {
-      addParticipant(splitId, participant.name, participant.phone, participant.amountPaise);
+      const verificationCode = participant.isCreator ? null : uuidv4();
+      addParticipant(splitId, participant.name, participant.phone, participant.amountPaise, verificationCode);
     }
 
     const split = getSplitById(splitId, req.user.id);

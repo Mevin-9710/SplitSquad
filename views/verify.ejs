@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Verify Payment - SplitSquad</title>
+  <link href="/css/brutalist.css" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary": "#5d5f5f",
+            "surface-tint": "#785a00",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f1f1f1",
+            "outline-variant": "#d3c5ad",
+            "inverse-surface": "#2f3131",
+            "surface-bright": "#f9f9f9",
+            "on-primary-fixed-variant": "#5b4300",
+            "primary": "#785a00",
+            "tertiary-container": "#c4c5c5",
+            "surface-container-highest": "#e2e2e2",
+            "primary-container": "#f4bd31",
+            "on-primary-fixed": "#251a00",
+            "on-primary-container": "#694d00",
+            "tertiary-fixed-dim": "#c6c6c7",
+            "on-tertiary-container": "#505252",
+            "surface-container-lowest": "#ffffff",
+            "outline": "#817661",
+            "inverse-primary": "#f5be32",
+            "on-secondary-fixed-variant": "#474747",
+            "secondary": "#5e5e5e",
+            "surface-dim": "#dadada",
+            "secondary-fixed": "#e2e2e2",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#1b1b1b",
+            "surface-container-high": "#e8e8e8",
+            "tertiary-fixed": "#e2e2e2",
+            "surface-variant": "#e2e2e2",
+            "surface-container-low": "#f4f3f3",
+            "secondary-container": "#e2e2e2",
+            "on-surface": "#1a1c1c",
+            "secondary-fixed-dim": "#c6c6c6",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed": "#1a1c1c",
+            "on-tertiary": "#ffffff",
+            "primary-fixed-dim": "#f5be32",
+            "surface": "#f9f9f9",
+            "on-secondary": "#ffffff",
+            "on-background": "#1a1c1c",
+            "on-tertiary-fixed-variant": "#454747",
+            "on-surface-variant": "#4f4634",
+            "error": "#ba1a1a",
+            "background": "#f9f9f9",
+            "surface-container": "#eeeeee",
+            "error-container": "#ffdad6",
+            "primary-fixed": "#ffdf9d",
+            "on-secondary-container": "#646464"
+          },
+          "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+          "spacing": { "border-width-thin": "1px", "margin-desktop": "32px", "border-width-thick": "3px", "unit": "4px", "margin-mobile": "16px", "gutter": "16px" },
+          "fontFamily": { "headline-lg": ["Pixelify Sans", "sans-serif"], "body-md": ["Inter"], "label-sm": ["Space Mono"], "label-md": ["Space Mono"], "headline-lg-mobile": ["Pixelify Sans", "sans-serif"], "headline-md": ["Pixelify Sans", "sans-serif"], "body-lg": ["Inter"] },
+          "fontSize": { "headline-lg": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}], "label-sm": ["12px", {"lineHeight": "1.0", "fontWeight": "500"}], "label-md": ["14px", {"lineHeight": "1.0", "fontWeight": "500"}], "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}], "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}] }
+        }
+      }
+    }
+  </script>
+  <style>
+    .brutalist-border { border: 3px solid #1a1c1c; }
+    .brutalist-border-thin { border: 1px solid #1a1c1c; }
+    .brutalist-shadow { box-shadow: 4px 4px 0px #1a1c1c; }
+    .brutalist-shadow-sm { box-shadow: 2px 2px 0px #1a1c1c; }
+    .brutalist-shadow:active { box-shadow: none; transform: translate(4px, 4px); }
+    body { background-color: #f9f9f9; color: #1a1c1c; }
+  </style>
+  <style> body { min-height: max(884px, 100dvh); } </style>
+</head>
+<body class="font-body-md bg-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 grid-bg">
+  <header class="fixed top-0 w-full z-50 flex justify-center items-center px-margin-mobile md:px-margin-desktop h-16 bg-primary text-on-primary border-b-[3px] border-on-surface">
+    <span class="font-headline-md text-headline-md uppercase tracking-tighter">SplitSquad - Verify Payment</span>
+  </header>
+  <main class="flex-1 max-w-3xl w-full mx-auto p-margin-mobile md:p-margin-desktop space-y-4">
+    <% if (error) { %>
+    <div class="brutalist-border bg-error-container p-6 text-center">
+      <span class="material-symbols-outlined text-6xl text-error mb-2" data-icon="error_outline">error_outline</span>
+      <h1 class="font-headline-md text-headline-md uppercase mb-2">Invalid Link</h1>
+      <p class="font-body-md text-body-md"><%= error %></p>
+    </div>
+    <% } else if (participant) { %>
+    <div class="brutalist-border bg-surface-container-lowest p-6">
+      <h1 class="font-headline-lg-mobile text-headline-lg-mobile uppercase mb-4">Verify Your Payment</h1>
+      <div class="space-y-4">
+        <div class="brutalist-border-thin bg-surface-container p-4">
+          <p class="font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Split</p>
+          <p class="font-headline-md text-headline-md"><%= participant.split_description %></p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="brutalist-border-thin bg-surface-container p-4">
+            <p class="font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Your Name</p>
+            <p class="font-label-md text-label-md uppercase"><%= participant.name %></p>
+          </div>
+          <div class="brutalist-border-thin bg-primary-container p-4">
+            <p class="font-label-sm text-label-sm uppercase text-on-primary-fixed mb-1">Your Share</p>
+            <p class="font-headline-md text-headline-md">₹<%= participant.amountRupees %></p>
+          </div>
+        </div>
+        <div class="brutalist-border-thin bg-surface-container p-4">
+          <p class="font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Split Total</p>
+          <p class="font-label-md text-label-md">₹<%= participant.splitTotalRupees %></p>
+        </div>
+        <% if (participant.upiLink) { %>
+        <div class="brutalist-border-thin bg-surface-container-high p-4">
+          <p class="font-label-sm text-label-sm uppercase text-on-surface-variant mb-2">Pay via UPI</p>
+          <a href="<%= participant.upiLink %>" class="brutalist-border brutalist-shadow bg-primary-container p-3 font-label-md text-label-md uppercase text-on-primary-fixed block text-center hover:bg-inverse-primary transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
+            Open UPI App →
+          </a>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-2 truncate"><%= participant.upiLink %></p>
+        </div>
+        <% } %>
+        <div class="brutalist-border-thin bg-error-container p-4">
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+            <div>
+              <p class="font-label-md text-label-md uppercase text-error">Single-Use Link</p>
+              <p class="font-body-md text-body-md mt-1">This link can only be used once. Please verify only after you have completed your payment.</p>
+            </div>
+          </div>
+        </div>
+        <% if (alreadyVerified) { %>
+        <div class="brutalist-border bg-primary-container p-6 text-center">
+          <span class="material-symbols-outlined filled text-6xl text-on-primary-fixed mb-2" data-icon="check_circle">check_circle</span>
+          <h2 class="font-headline-md text-headline-md uppercase mb-2">Payment Verified!</h2>
+          <p class="font-body-md text-body-md">This payment has already been verified. The split creator has been notified.</p>
+        </div>
+        <% } else { %>
+        <div id="verify-section" class="brutalist-border bg-surface-container-low p-6">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <div class="brutalist-border-thin w-6 h-6 flex items-center justify-center bg-surface-container-lowest flex-shrink-0 mt-1" id="checkbox-box">
+              <span class="material-symbols-outlined text-4 text-on-primary-fixed hidden" data-icon="check" id="checkbox-check">check</span>
+            </div>
+            <div>
+              <p class="font-label-md text-label-md uppercase">I have completed my payment of ₹<%= participant.amountRupees %></p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Checking this confirms your payment. This action cannot be undone.</p>
+            </div>
+          </label>
+          <input type="hidden" id="verified-checkbox" value="0"/>
+          <button id="verify-btn" class="w-full mt-4 brutalist-border brutalist-shadow bg-primary-container p-4 font-label-md text-label-md uppercase text-on-primary-fixed hover:bg-inverse-primary transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Verify Payment
+          </button>
+          <p id="verify-status" class="font-label-sm text-label-sm text-on-surface-variant mt-2 text-center hidden"></p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+  </main>
+  <% if (participant && !alreadyVerified) { %>
+  <script>
+    const checkbox = document.getElementById('verified-checkbox');
+    const checkboxBox = document.getElementById('checkbox-box');
+    const checkboxCheck = document.getElementById('checkbox-check');
+    const verifyBtn = document.getElementById('verify-btn');
+    const verifyStatus = document.getElementById('verify-status');
+
+    if (checkboxBox) {
+      checkboxBox.addEventListener('click', () => {
+        const isChecked = checkbox.value === '1';
+        checkbox.value = isChecked ? '0' : '1';
+        checkboxCheck.classList.toggle('hidden', isChecked);
+        checkboxBox.classList.toggle('bg-primary-container', !isChecked);
+        verifyBtn.disabled = isChecked;
+      });
+    }
+
+    if (verifyBtn) {
+      verifyBtn.addEventListener('click', async () => {
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+        verifyStatus.classList.remove('hidden');
+        verifyStatus.textContent = '';
+
+        try {
+          const res = await fetch('/api/public/verify/<%= participant.verification_code %>', { method: 'POST' });
+          const data = await res.json();
+
+          if (data.success) {
+            verifyStatus.textContent = '✅ Payment verified successfully!';
+            verifyStatus.className = 'font-label-md text-label-md text-primary mt-2 text-center';
+            verifyBtn.textContent = 'Verified';
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else if (data.alreadyVerified) {
+            verifyStatus.textContent = '⚠️ ' + data.error;
+            verifyStatus.className = 'font-label-md text-label-md text-error mt-2 text-center';
+            verifyBtn.textContent = 'Already Verified';
+          } else {
+            verifyStatus.textContent = '❌ ' + data.error;
+            verifyStatus.className = 'font-label-md text-label-md text-error mt-2 text-center';
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify Payment';
+          }
+        } catch {
+          verifyStatus.textContent = '❌ Failed to verify. Please try again.';
+          verifyStatus.className = 'font-label-md text-label-md text-error mt-2 text-center';
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = 'Verify Payment';
+        }
+      });
+    }
+  </script>
+  <% } %>
+</body>
+</html>

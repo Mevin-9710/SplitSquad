@@ -60,12 +60,14 @@ import apiEvolutionRouter, { setEvents as setEvolutionEvents } from './routes/ap
 import apiContactsRouter from './routes/api/contacts.js';
 import apiProfileRouter from './routes/api/profile.js';
 import authRouter from './routes/api/auth.js';
+import publicVerifyRouter from './routes/public/verify.js';
 
 setSplitsEvents(events);
 setEvolutionEvents(events);
 
 // Public routes
 app.use('/', authRouter);
+app.use('/', publicVerifyRouter);
 app.get('/health', (req, res) => {
   const connected = req.user ? isConnected(req.user.id) : false;
   res.json({

@@ -85,6 +85,11 @@ const ADD_PARTICIPANT_UPI_COLUMN = `
   ALTER TABLE participants ADD COLUMN upi_id TEXT;
 `;
 
+const ADD_PARTICIPANT_VERIFICATION_COLUMNS = `
+  ALTER TABLE participants ADD COLUMN verification_code TEXT;
+  ALTER TABLE participants ADD COLUMN participant_verified INTEGER DEFAULT 0;
+`;
+
 export function initSchema() {
   const db = getDatabase();
 
@@ -119,6 +124,13 @@ export function initSchema() {
       logger.debug('Added upi_id column to participants table');
     } catch {
       logger.debug('Participant upi_id column already exists');
+    }
+
+    try {
+      db.exec(ADD_PARTICIPANT_VERIFICATION_COLUMNS);
+      logger.debug('Added verification columns to participants table');
+    } catch {
+      logger.debug('Participant verification columns already exist');
     }
 
     db.exec(`
