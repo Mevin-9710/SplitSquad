@@ -218,6 +218,7 @@
       const modal = document.getElementById('upi-redirect-modal');
       const fallbackLink = document.getElementById('upi-fallback-link');
       fallbackLink.href = upiUrl;
+      modal.classList.remove('hidden');
       modal.style.display = 'flex';
 
       setTimeout(() => {
@@ -227,6 +228,7 @@
 
     function hideUpiModal() {
       const modal = document.getElementById('upi-redirect-modal');
+      modal.classList.add('hidden');
       modal.style.display = 'none';
     }
 

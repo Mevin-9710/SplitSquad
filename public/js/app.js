@@ -396,6 +396,14 @@ function loadQrDataFromUrl() {
 
 function setupPaymentModeToggle() {
   const buttons = document.querySelectorAll('.payment-mode-btn');
+  const merchantBtn = document.querySelector('.payment-mode-btn[data-mode="merchant_direct"]');
+  const creatorBtn = document.querySelector('.payment-mode-btn[data-mode="creator_paid"]');
+
+  if (!qrData && merchantBtn) {
+    merchantBtn.style.display = 'none';
+    creatorBtn.classList.add('border-r-0');
+  }
+
   buttons.forEach(btn => {
     btn.addEventListener('click', () => {
       currentPaymentMode = btn.dataset.mode;
@@ -421,6 +429,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadQrDataFromSession();
   loadQrDataFromUrl();
   setupPaymentModeToggle();
+
+  if (qrData) {
+    const merchantBtn = document.querySelector('.payment-mode-btn[data-mode="merchant_direct"]');
+    if (merchantBtn) merchantBtn.style.display = '';
+  }
 
   if (openDialogBtn) {
     await loadContacts();
