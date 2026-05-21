@@ -92,3 +92,191 @@ button, a {
     opacity: 1;
   }
 }
+
+#tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  pointer-events: auto;
+}
+
+#tutorial-overlay.active {
+  display: block;
+}
+
+#tutorial-overlay .tutorial-highlight {
+  position: absolute;
+  border: 3px solid #f4bd31;
+  border-radius: 4px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  z-index: 10002;
+  pointer-events: none;
+  animation: tutorial-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tutorial-pulse {
+  0%, 100% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 0 3px #f4bd31; }
+  50% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 0 6px #f4bd31; }
+}
+
+#tutorial-tooltip {
+  position: absolute;
+  z-index: 10003;
+  background: #f4bd31;
+  border: 3px solid #1a1c1c;
+  box-shadow: 4px 4px 0px #1a1c1c;
+  padding: 20px;
+  max-width: 340px;
+  min-width: 280px;
+  pointer-events: auto;
+}
+
+#tutorial-tooltip .tooltip-step {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #1a1c1c;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+#tutorial-tooltip .tooltip-title {
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #1a1c1c;
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+#tutorial-tooltip .tooltip-body {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1a1c1c;
+  margin-bottom: 16px;
+}
+
+#tutorial-tooltip .tooltip-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+#tutorial-tooltip .tooltip-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: 2px solid #1a1c1c;
+  background: #f9f9f9;
+  color: #1a1c1c;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+#tutorial-tooltip .tooltip-btn:hover {
+  background: #e2e2e2;
+}
+
+#tutorial-tooltip .tooltip-btn:active {
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+#tutorial-tooltip .tooltip-btn.primary {
+  background: #1a1c1c;
+  color: #f4bd31;
+}
+
+#tutorial-tooltip .tooltip-btn.primary:hover {
+  background: #2f3131;
+}
+
+#tutorial-tooltip .tooltip-btn.skip {
+  background: transparent;
+  border-color: transparent;
+  color: #1a1c1c;
+  opacity: 0.6;
+}
+
+#tutorial-tooltip .tooltip-btn.skip:hover {
+  opacity: 1;
+  background: transparent;
+}
+
+#tutorial-welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+#tutorial-welcome.active {
+  display: flex;
+}
+
+#tutorial-welcome .welcome-card {
+  background: #f4bd31;
+  border: 3px solid #1a1c1c;
+  box-shadow: 6px 6px 0px #1a1c1c;
+  padding: 32px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+
+#tutorial-welcome .welcome-title {
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #1a1c1c;
+  margin-bottom: 16px;
+}
+
+#tutorial-welcome .welcome-body {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #1a1c1c;
+  margin-bottom: 24px;
+}
+
+#tutorial-welcome .welcome-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+#tutorial-welcome .welcome-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  border: 2px solid #1a1c1c;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+#tutorial-welcome .welcome-btn:active {
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+#tutorial-welcome .welcome-btn.start {
+  background: #1a1c1c;
+  color: #f4bd31;
+}
+
+#tutorial-welcome .welcome-btn.skip {
+  background: #f9f9f9;
+  color: #1a1c1c;
+}

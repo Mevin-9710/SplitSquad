@@ -185,6 +185,7 @@
       <span class="font-label-sm text-label-sm uppercase mt-1">WhatsApp</span>
     </a>
   </nav>
+  <%- include('partials/tutorial') %>
   <script>
     const paymentMode = '<%- split.payment_mode %>';
     const merchantUpiId = '<%- (split.merchant_upi_id || '').replace(/'/g, "\\'") %>';
