@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { getAllSlugs } from "@/lib/mdx";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://splitsquad.qzz.io";
@@ -13,5 +14,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/upi-expense-splitting`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7 },
   ];
 
-  return routes;
+  const blogSlugs = getAllSlugs();
+  const blogRoutes = blogSlugs.map((slug) => ({
+    url: `${baseUrl}/blog/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  return [...routes, ...blogRoutes];
 }
