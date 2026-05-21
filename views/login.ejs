@@ -87,9 +87,11 @@
       </div>
       <p class="font-label-md text-label-md uppercase text-on-surface-variant mt-3">Bill splitting, simplified</p>
     </div>
-    <% if (error) { %>
+    <% const urlError = typeof query !== 'undefined' && query.error ? 'Authentication failed. Please try again.' : null; %>
+    <% const displayError = error || urlError; %>
+    <% if (displayError) { %>
     <div class="brutalist-border-thin border-error bg-error-container p-3">
-      <p class="font-label-sm text-label-sm text-error-container"><%= error %></p>
+      <p class="font-label-sm text-label-sm text-error-container"><%= displayError %></p>
     </div>
     <% } %>
     <% if (success) { %>
