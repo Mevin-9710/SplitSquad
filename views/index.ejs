@@ -5,6 +5,7 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>SplitSquad</title>
   <link href="/images/logo.png" rel="icon" type="image/png"/>
+  <link href="/manifest.json" rel="manifest"/>
   <link href="/css/brutalist.css" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
@@ -120,6 +121,20 @@
       <span class="material-symbols-outlined" data-icon="settings">settings</span>
     </a>
   </header>
+  <div id="pwa-install-banner" class="hidden fixed top-16 left-0 right-0 z-40 bg-primary-container border-b-[3px] border-on-surface px-margin-mobile md:px-margin-desktop py-3">
+    <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="material-symbols-outlined text-on-primary-fixed" data-icon="download">download</span>
+        <span class="font-label-sm text-label-sm uppercase text-on-primary-fixed truncate">Install SplitSquad</span>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button id="pwa-install-btn" class="brutalist-border-thin bg-surface-container-lowest px-3 py-1.5 font-label-sm text-label-sm uppercase text-on-surface hover:bg-surface-variant transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">Install</button>
+        <button id="pwa-dismiss-btn" class="p-1 text-on-primary-fixed hover:text-on-primary-container transition-colors">
+          <span class="material-symbols-outlined text-4" data-icon="close">close</span>
+        </button>
+      </div>
+    </div>
+  </div>
   <main class="flex-1 max-w-3xl w-full mx-auto p-margin-mobile md:p-margin-desktop space-y-6">
     <div class="grid grid-cols-2 gap-gutter">
       <a href="/scan-qr" class="brutalist-border brutalist-shadow bg-primary-container p-4 flex flex-col items-center justify-center gap-2 hover:bg-inverse-primary transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
@@ -223,5 +238,47 @@
   </nav>
   <%- include('partials/tutorial') %>
   <script src="/js/app.js"></script>
+  <script>
+    (function() {
+      const banner = document.getElementById('pwa-install-banner');
+      const installBtn = document.getElementById('pwa-install-btn');
+      const dismissBtn = document.getElementById('pwa-dismiss-btn');
+      const DISMISSED_KEY = 'splitsquad_pwa_dismissed';
+
+      if (localStorage.getItem(DISMISSED_KEY)) return;
+
+      let deferredPrompt = null;
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        banner.classList.remove('hidden');
+        banner.style.display = 'block';
+      });
+
+      if ('standalone' in window.navigator && window.navigator.standalone) {
+        return;
+      }
+
+      if (!('serviceWorker' in navigator)) return;
+
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+
+      installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const result = await deferredPrompt.userChoice;
+        if (result.outcome === 'accepted') {
+          banner.style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+
+      dismissBtn.addEventListener('click', () => {
+        localStorage.setItem(DISMISSED_KEY, '1');
+        banner.style.display = 'none';
+      });
+    })();
+  </script>
 </body>
 </html>
