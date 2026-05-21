@@ -97,8 +97,9 @@ button, a {
   position: fixed;
   inset: 0;
   z-index: 10001;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.5);
   display: none;
+  pointer-events: none;
 }
 
 #tutorial-overlay.active {

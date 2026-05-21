@@ -125,7 +125,7 @@
 
   function isTutorialComplete() {
     const state = getTutorialState();
-    return state && state.completed === true;
+    return state && (state.completed === true || state.skipped === true);
   }
 
   function waitForElement(selector, timeout = 60000) {
@@ -259,7 +259,16 @@
       doneBtn.textContent = 'I\'ve Done It';
       doneBtn.style.opacity = '1';
 
+      const onTargetClick = () => {
+        overlay.style.background = 'transparent';
+        highlight.style.display = 'none';
+        highlight.style.boxShadow = 'none';
+      };
+
+      target.addEventListener('click', onTargetClick, { once: true });
+
       doneBtn.onclick = () => {
+        target.removeEventListener('click', onTargetClick);
         doneBtn.disabled = true;
         doneBtn.textContent = 'Checking...';
         doneBtn.style.opacity = '0.5';
@@ -391,7 +400,7 @@
   function skipTutorial() {
     clearTimeout(verificationTimeout);
     if (verificationAbort) verificationAbort();
-    clearTutorialState();
+    setTutorialState({ step: STEPS.length, completed: true, skipped: true });
   }
 
   function completeTutorial() {
@@ -406,6 +415,8 @@
 
   function startTutorial() {
     if (isTutorialComplete()) return;
+    const state = getTutorialState();
+    if (state && state.skipped) return;
     setTutorialState({ step: 0, completed: false });
     nextStep(0);
   }
@@ -416,7 +427,10 @@
       deleteTutorialSplit(state.tutorialSplitId);
     }
     clearTutorialState();
-    window.location.href = '/?tutorial=0';
+    setTimeout(() => {
+      setTutorialState({ step: 0, completed: false, skipped: false });
+      nextStep(0);
+    }, 100);
   }
 
   function replayTutorial() {
@@ -428,7 +442,7 @@
     if (window.location.pathname === '/login') return;
 
     const state = getTutorialState();
-    if (state && state.completed) return;
+    if (state && (state.completed || state.skipped)) return;
 
     const urlParams = new URLSearchParams(window.location.search);
     const tutorialParam = urlParams.get('tutorial');
