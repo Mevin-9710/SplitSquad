@@ -238,6 +238,7 @@
     const nextBtn = tooltip.querySelector('.tooltip-btn.next');
     const skipBtn = tooltip.querySelector('.tooltip-btn.skip');
 
+    highlight.style.display = 'block';
     highlight.style.top = rect.top - 4 + 'px';
     highlight.style.left = rect.left - 4 + 'px';
     highlight.style.width = rect.width + 8 + 'px';

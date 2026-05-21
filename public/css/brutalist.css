@@ -99,7 +99,6 @@ button, a {
   z-index: 10001;
   background: transparent;
   display: none;
-  pointer-events: none;
 }
 
 #tutorial-overlay.active {
@@ -107,18 +106,18 @@ button, a {
 }
 
 #tutorial-overlay .tutorial-highlight {
-  position: absolute;
+  position: fixed;
   border: 3px solid #f4bd31;
   border-radius: 4px;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
   z-index: 10002;
   pointer-events: none;
-  animation: tutorial-pulse 2s ease-in-out infinite;
+  background: rgba(244, 189, 49, 0.1);
 }
 
 @keyframes tutorial-pulse {
-  0%, 100% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 0 3px #f4bd31; }
-  50% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 0 6px #f4bd31; }
+  0%, 100% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 0 3px #f4bd31; }
+  50% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 0 6px #f4bd31; }
 }
 
 #tutorial-tooltip {
