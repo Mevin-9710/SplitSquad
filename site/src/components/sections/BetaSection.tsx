@@ -35,7 +35,7 @@ export function BetaSection() {
             </motion.div>
 
             <h2 className="font-headline text-headline-xl-mobile md:text-headline-xl tracking-tighter uppercase leading-tight mb-4">
-              Be part of the <span className="text-primary-container">squad</span>.
+              Be part of the <span className="text-primary">squad</span>.
             </h2>
 
             <p className="font-body text-body-lg text-on-surface-variant max-w-xl mx-auto">
@@ -56,7 +56,7 @@ export function BetaSection() {
                   transition={{ duration: 0.4, delay: 0.1 * i }}
                   className="flex items-start gap-3"
                 >
-                  <div className="flex-shrink-0 w-10 h-10 bg-primary-container/20 border-2 border-primary-container flex items-center justify-center text-primary-container">
+                  <div className="flex-shrink-0 w-10 h-10 bg-primary-container border-3 border-on-surface flex items-center justify-center text-on-surface shadow-brutalist-sm">
                     {perk.icon}
                   </div>
                   <span className="font-body text-body-md text-on-surface pt-1.5">{perk.text}</span>

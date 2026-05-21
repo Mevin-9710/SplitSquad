@@ -34,7 +34,7 @@ export function CTASection() {
 
         <ScrollReveal delay={0.1} direction="up">
           <h2 className="font-headline text-headline-xl-mobile md:text-headline-xl lg:text-[72px] tracking-tighter uppercase leading-tight mb-6">
-            Ready to <span className="text-primary-container">split</span>?
+            Ready to <span className="text-primary">split</span>?
           </h2>
         </ScrollReveal>
 

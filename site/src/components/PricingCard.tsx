@@ -32,8 +32,8 @@ export function PricingCard({
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5 }}
       whileHover={{ y: -4 }}
-      className={`relative bg-surface-container-lowest border-3 shadow-brutalist-lg p-8 md:p-10 ${
-        highlighted ? "border-primary-container" : "border-on-surface"
+      className={`relative border-3 shadow-brutalist-lg p-8 md:p-10 ${
+        highlighted ? "bg-primary-container/10 border-primary-container" : "bg-surface-container-lowest border-on-surface"
       }`}
       style={{ borderWidth: 3, borderColor: highlighted ? "#f4bd31" : "#1a1c1c" }}
     >

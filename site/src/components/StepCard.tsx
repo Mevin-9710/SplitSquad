@@ -25,7 +25,7 @@ export function StepCard({ number, title, description, icon, delay = 0, isLast =
       >
         <div className="flex items-start gap-6">
           <div className="flex-shrink-0">
-            <div className="w-16 h-16 bg-primary-container border-3 border-on-surface flex items-center justify-center font-headline text-3xl font-bold shadow-brutalist-sm" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
+            <div className="w-16 h-16 bg-primary-container border-3 border-on-surface flex items-center justify-center font-headline text-3xl font-bold text-on-surface shadow-brutalist" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
               {number}
             </div>
           </div>

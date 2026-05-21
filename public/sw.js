@@ -5,7 +5,7 @@ const STATIC_ASSETS = [
   '/app/css/tailwind.css',
   '/app/js/app.min.js',
   '/app/js/tutorial.min.js',
-  '/app/images/logo.svg',
+  '/app/images/S.svg',
   '/app/manifest.json',
 ];
 

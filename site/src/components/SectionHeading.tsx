@@ -14,7 +14,7 @@ export function SectionHeading({ label, title, subtitle, align = "center" }: Sec
     <div className={`mb-12 md:mb-16 ${align === "center" ? "text-center" : "text-left"}`}>
       {label && (
         <ScrollReveal delay={0} direction="up">
-          <span className="inline-block font-mono text-xs uppercase tracking-widest text-on-surface-variant mb-4 px-3 py-1.5 border-2 border-on-surface/20">
+          <span className="inline-block font-mono text-xs uppercase tracking-widest text-primary mb-4 px-3 py-1.5 border-2 border-primary/30 bg-primary-container/10">
             {label}
           </span>
         </ScrollReveal>

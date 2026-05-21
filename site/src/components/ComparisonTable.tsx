@@ -39,7 +39,7 @@ export function ComparisonTable({
           <div className="p-4 bg-surface-container border-r-2 border-on-surface font-mono text-xs uppercase text-on-surface-variant" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
             Feature
           </div>
-          <div className="p-4 bg-primary-container/10 border-r-2 border-on-surface font-headline text-sm uppercase tracking-tight text-center" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
+          <div className="p-4 bg-primary-container border-r-2 border-on-surface font-headline text-sm uppercase tracking-tight text-on-surface text-center font-bold" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
             {ourLabel}
           </div>
           <div className="p-4 bg-surface-container font-headline text-sm uppercase tracking-tight text-center">

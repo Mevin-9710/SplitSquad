@@ -15,9 +15,10 @@ interface BrutalistButtonProps {
 }
 
 const variants = {
-  primary: "bg-primary-container text-on-surface border-on-surface shadow-brutalist hover:bg-primary",
+  primary: "bg-primary-container text-on-surface border-on-surface shadow-brutalist hover:bg-primary hover:text-surface",
   secondary: "bg-surface-container-lowest text-on-surface border-on-surface shadow-brutalist hover:bg-surface-variant",
   ghost: "bg-transparent text-on-surface border-2 border-on-surface hover:bg-primary-container/10",
+  black: "bg-on-surface text-surface border-on-surface shadow-brutalist hover:bg-primary-container hover:text-on-surface",
 };
 
 const sizes = {

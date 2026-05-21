@@ -21,15 +21,15 @@ export function FeatureCard({ icon, title, description, delay = 0 }: FeatureCard
       className="group relative bg-surface-container-lowest border-3 border-on-surface p-6 shadow-brutalist hover:shadow-brutalist-lg transition-shadow duration-300"
       style={{ borderWidth: 3, borderColor: "#1a1c1c" }}
     >
-      <div className="absolute inset-0 bg-primary-container/0 group-hover:bg-primary-container/5 transition-colors duration-300" />
-      <div className="relative">
-        <div className="w-12 h-12 bg-primary-container/20 border-2 border-primary-container flex items-center justify-center mb-4 group-hover:bg-primary-container/30 transition-colors">
+      <div className="absolute inset-0 bg-on-surface/0 group-hover:bg-on-surface transition-colors duration-300" />
+      <div className="relative group-hover:text-surface transition-colors duration-300">
+        <div className="w-12 h-12 bg-primary-container border-3 border-on-surface flex items-center justify-center mb-4 group-hover:bg-primary-container shadow-brutalist-sm transition-all">
           {icon}
         </div>
         <h3 className="font-headline text-headline-md uppercase tracking-tight mb-2">{title}</h3>
-        <p className="font-body text-body-md text-on-surface-variant leading-relaxed">{description}</p>
+        <p className="font-body text-body-md text-on-surface-variant leading-relaxed group-hover:text-surface/70 transition-colors duration-300">{description}</p>
       </div>
-      <div className="absolute bottom-0 left-0 w-0 h-1 bg-primary-container group-hover:w-full transition-all duration-500" />
+      <div className="absolute bottom-0 left-0 w-0 h-1.5 bg-primary-container group-hover:w-full transition-all duration-500" />
     </motion.div>
   );
 }

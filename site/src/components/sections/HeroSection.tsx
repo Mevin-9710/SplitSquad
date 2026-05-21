@@ -49,7 +49,7 @@ export function HeroSection() {
               <span
                 className={`font-headline text-headline-xl-mobile md:text-headline-xl lg:text-[72px] tracking-tighter uppercase leading-none ${
                   i === words.length - 1
-                    ? "text-primary-container"
+                    ? "text-primary"
                     : "text-on-surface"
                 }`}
               >
