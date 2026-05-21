@@ -65,13 +65,13 @@ export default function UpiExpenseSplittingPage() {
         <AnimatedGrid />
         <div className="relative max-w-4xl mx-auto px-4 md:px-8 text-center">
           <ScrollReveal direction="up">
-            <span className="inline-block font-mono text-xs uppercase tracking-widest text-on-surface-variant mb-4 px-3 py-1.5 border-2 border-on-surface/20">
+            <span className="inline-block font-headline text-sm uppercase tracking-tight text-primary mb-4 px-3 py-1.5 bg-primary-container/10 border-2 border-primary/30">
               UPI Expense Splitting
             </span>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
             <h1 className="font-headline text-headline-xl-mobile md:text-headline-xl lg:text-[72px] tracking-tighter uppercase leading-tight mb-4">
-              UPI Expense Splitting<br/>Made <span className="text-primary-container">Simple</span>.
+              UPI Expense Splitting<br/>Made <span className="text-primary">Simple</span>.
             </h1>
           </ScrollReveal>
           <ScrollReveal delay={0.2}>
@@ -107,7 +107,7 @@ export default function UpiExpenseSplittingPage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
-                      <div className="text-primary-container">{step.icon}</div>
+                      <div className="text-primary">{step.icon}</div>
                       <h3 className="font-headline text-headline-md uppercase tracking-tight">{step.title}</h3>
                     </div>
                     <p className="font-body text-body-lg text-on-surface-variant">{step.desc}</p>
@@ -200,7 +200,7 @@ export default function UpiExpenseSplittingPage() {
         <div className="max-w-2xl mx-auto px-4 md:px-8">
           <ScrollReveal direction="up">
             <h2 className="font-headline text-headline-xl-mobile md:text-headline-xl tracking-tighter uppercase leading-tight mb-4">
-              Start splitting UPI payments<br/>the <span className="text-primary-container">smart way</span>.
+              Start splitting UPI payments<br/>the <span className="text-primary">smart way</span>.
             </h2>
             <p className="font-body text-body-lg text-on-surface-variant mb-8">
               Join thousands of users simplifying group expenses with SplitSquad.

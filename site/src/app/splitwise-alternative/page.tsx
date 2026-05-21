@@ -55,13 +55,13 @@ export default function SplitwiseAlternativePage() {
         <AnimatedGrid />
         <div className="relative max-w-4xl mx-auto px-4 md:px-8 text-center">
           <ScrollReveal direction="up">
-            <span className="inline-block font-mono text-xs uppercase tracking-widest text-on-surface-variant mb-4 px-3 py-1.5 border-2 border-on-surface/20">
+            <span className="inline-block font-headline text-sm uppercase tracking-tight text-primary mb-4 px-3 py-1.5 bg-primary-container/10 border-2 border-primary/30">
               Splitwise Alternative
             </span>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
             <h1 className="font-headline text-headline-xl-mobile md:text-headline-xl lg:text-[72px] tracking-tighter uppercase leading-tight mb-4">
-              The Splitwise Alternative<br/>Built for <span className="text-primary-container">India</span>.
+              The Splitwise Alternative<br/>Built for <span className="text-primary">India</span>.
             </h1>
           </ScrollReveal>
           <ScrollReveal delay={0.2}>

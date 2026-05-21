@@ -33,8 +33,8 @@ export function Footer() {
             <p className="font-body text-sm text-on-surface-variant mb-4">
               UPI-first expense splitting for the way Indians actually pay.
             </p>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-container/20 border-2 border-primary-container font-mono text-xs uppercase">
-              <span className="w-2 h-2 bg-primary-container animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-container border-3 border-on-surface font-mono text-xs uppercase text-on-primary">
+              <span className="w-2 h-2 bg-on-primary animate-pulse" />
               Currently in Beta
             </div>
           </div>

@@ -45,7 +45,7 @@ export function BlogCard({ post, featured = false }: BlogCardProps) {
           <div className={`p-5 flex flex-col justify-between flex-1 ${featured ? "md:p-8" : ""}`}>
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="font-mono text-[10px] uppercase px-2 py-1 bg-primary-container/20 border border-primary-container text-on-surface">
+                <span className="font-mono text-[10px] uppercase px-2 py-1 bg-primary-container border-2 border-on-surface text-on-primary">
                   {frontmatter.category}
                 </span>
                 <span className="font-mono text-[10px] uppercase text-on-surface-variant">

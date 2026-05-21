@@ -29,7 +29,7 @@ export function FeatureDetail({
         <div className={`flex flex-col ${reversed ? "md:flex-row-reverse" : "md:flex-row"} items-start gap-8 md:gap-12`}>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-primary-container/20 border-2 border-primary-container flex items-center justify-center">
+              <div className="w-12 h-12 bg-primary-container border-3 border-on-surface flex items-center justify-center">
                 {icon}
               </div>
               <h3 className="font-headline text-headline-md uppercase tracking-tight">{title}</h3>

@@ -44,13 +44,13 @@ export default function AboutPage() {
         <AnimatedGrid />
         <div className="relative max-w-4xl mx-auto px-4 md:px-8 text-center">
           <ScrollReveal direction="up">
-            <span className="inline-block font-mono text-xs uppercase tracking-widest text-on-surface-variant mb-4 px-3 py-1.5 border-2 border-on-surface/20">
+            <span className="inline-block font-headline text-sm uppercase tracking-tight text-primary mb-4 px-3 py-1.5 bg-primary-container/10 border-2 border-primary/30">
               About SplitSquad
             </span>
           </ScrollReveal>
           <ScrollReveal delay={0.1} direction="up">
             <h1 className="font-headline text-headline-xl-mobile md:text-headline-xl lg:text-[72px] tracking-tighter uppercase leading-tight mb-4">
-              Built for groups.<br/>Designed for <span className="text-primary-container">real life</span>.
+              Built for groups.<br/>Designed for <span className="text-primary">real life</span>.
             </h1>
           </ScrollReveal>
           <ScrollReveal delay={0.2} direction="up">
@@ -162,20 +162,20 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
             <ScrollReveal direction="up">
-              <div className="p-6 border-3 border-on-surface bg-primary-container/5 shadow-brutalist text-center" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
-                <h3 className="font-mono text-xs uppercase tracking-widest text-on-surface-variant mb-2">Mission</h3>
-                <p className="font-headline text-headline-md uppercase tracking-tight">To make shared payments effortless, transparent, and stress-free for groups everywhere.</p>
+              <div className="p-6 border-3 border-on-surface bg-primary-container shadow-brutalist text-center" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
+                <h3 className="font-mono text-xs uppercase tracking-widest text-primary mb-2">Mission</h3>
+                <p className="font-headline text-headline-md uppercase tracking-tight text-on-primary">To make shared payments effortless, transparent, and stress-free for groups everywhere.</p>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
-              <div className="p-6 border-3 border-on-surface bg-primary-container/5 shadow-brutalist text-center" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
-                <h3 className="font-mono text-xs uppercase tracking-widest text-on-surface-variant mb-2">Vision</h3>
-                <p className="font-headline text-headline-md uppercase tracking-tight">To become the default social payment coordination platform for groups worldwide.</p>
+              <div className="p-6 border-3 border-on-surface bg-primary-container shadow-brutalist text-center" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
+                <h3 className="font-mono text-xs uppercase tracking-widest text-primary mb-2">Vision</h3>
+                <p className="font-headline text-headline-md uppercase tracking-tight text-on-primary">To become the default social payment coordination platform for groups worldwide.</p>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={0.2}>
-              <div className="p-6 border-3 border-on-surface bg-primary-container/5 shadow-brutalist text-center" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
-                <h3 className="font-mono text-xs uppercase tracking-widest text-on-surface-variant mb-2">Built For</h3>
+              <div className="p-6 border-3 border-on-surface bg-primary-container shadow-brutalist text-center" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
+                <h3 className="font-mono text-xs uppercase tracking-widest text-primary mb-2">Built For</h3>
                 <div className="flex flex-wrap justify-center gap-2">
                   {audiences.map((a, i) => (
                     <span key={i} className="px-2 py-1 bg-surface-container border border-on-surface font-mono text-xs uppercase">{a}</span>
@@ -191,7 +191,7 @@ export default function AboutPage() {
             {values.map((v, i) => (
               <ScrollReveal key={i} direction="up" delay={i * 0.1}>
                 <div className="text-center p-6 border-2 border-on-surface bg-surface-container-lowest shadow-brutalist-sm" style={{ borderWidth: 2, borderColor: "#1a1c1c" }}>
-                  <div className="w-12 h-12 mx-auto mb-4 bg-primary-container/20 border-2 border-primary-container flex items-center justify-center">{v.icon}</div>
+                  <div className="w-12 h-12 mx-auto mb-4 bg-primary-container border-3 border-on-surface flex items-center justify-center">{v.icon}</div>
                   <h3 className="font-headline text-headline-md uppercase tracking-tight mb-2">{v.title}</h3>
                   <p className="font-body text-body-md text-on-surface-variant">{v.desc}</p>
                 </div>
@@ -205,7 +205,7 @@ export default function AboutPage() {
       <section className="py-16 md:py-24 bg-surface-container-lowest border-y-3 border-on-surface" style={{ borderTopWidth: 3, borderBottomWidth: 3, borderColor: "#1a1c1c" }}>
         <div className="max-w-3xl mx-auto px-4 md:px-8 text-center">
           <ScrollReveal direction="up">
-            <Quote className="w-12 h-12 mx-auto mb-6 text-primary-container" />
+            <Quote className="w-12 h-12 mx-auto mb-6 text-primary" />
             <blockquote className="font-headline text-headline-md md:text-3xl uppercase tracking-tight leading-tight mb-6">
               I wanted to create something that removes the awkwardness and friction around splitting expenses with friends and groups. SplitSquad is built to make that experience feel simple, modern, and effortless.
             </blockquote>
@@ -227,7 +227,7 @@ export default function AboutPage() {
         <div className="max-w-2xl mx-auto px-4 md:px-8">
           <ScrollReveal direction="up">
             <h2 className="font-headline text-headline-xl-mobile md:text-headline-xl tracking-tighter uppercase leading-tight mb-4">
-              Shared expenses,<br/>finally <span className="text-primary-container">simplified</span>.
+              Shared expenses,<br/>finally <span className="text-primary">simplified</span>.
             </h2>
             <p className="font-body text-body-lg text-on-surface-variant mb-8">
               Spend less time tracking payments and more time enjoying experiences together.

@@ -64,7 +64,7 @@ export default function FeaturesPage() {
                   <span className="font-headline text-sm uppercase tracking-tight">Dinner at The Pizza Place</span>
                   <span className="font-mono text-lg uppercase font-bold">₹2,400</span>
                 </div>
-                <MockSplitRow name="You" amount="₹600" color="#f4bd31" />
+                <MockSplitRow name="You" amount="₹600" color="#785a00" />
                 <MockSplitRow name="Priya" amount="₹600" />
                 <MockSplitRow name="Rahul" amount="₹600" />
                 <MockSplitRow name="Ananya" amount="₹600" />
@@ -99,7 +99,7 @@ export default function FeaturesPage() {
                   </div>
                 </div>
                 <span className="font-mono text-xs uppercase mb-1">QR Code Detected</span>
-                <span className="font-headline text-sm uppercase tracking-tight text-primary-container">UPay Merchant</span>
+                  <span className="font-headline text-sm uppercase tracking-tight text-primary">UPay Merchant</span>
                 <span className="font-mono text-lg uppercase font-bold mt-1">₹450</span>
                 <div className="mt-3 w-full pt-3 border-t-2 border-on-surface/20 grid grid-cols-2 gap-2">
                   <span className="font-mono text-[10px] uppercase text-on-surface-variant">UPI ID</span>
@@ -128,7 +128,7 @@ export default function FeaturesPage() {
                   <span className="font-mono text-xs uppercase">Payment Verification</span>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-primary-container/10 border-2 border-primary-container">
+                  <div className="flex items-center justify-between p-3 bg-primary-container border-3 border-on-surface">
                     <span className="font-mono text-xs uppercase">You</span>
                     <span className="font-mono text-xs uppercase text-whatsapp font-bold">✓ Verified</span>
                   </div>
@@ -297,7 +297,7 @@ export default function FeaturesPage() {
                   ].map((person, i) => (
                     <div key={i} className="flex items-center justify-between py-2 px-3 bg-surface-container border border-on-surface">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary-container/20 border border-on-surface flex items-center justify-center font-mono text-xs uppercase">
+                        <div className="w-8 h-8 bg-primary-container border-2 border-on-surface flex items-center justify-center font-mono text-xs uppercase">
                           {person.name.split(" ").map(n => n[0]).join("")}
                         </div>
                         <span className="font-body text-sm">{person.name}</span>
