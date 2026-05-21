@@ -16,11 +16,10 @@
       id: 'upi-setup',
       page: '/settings',
       type: 'tooltip',
-      target: '#upi-list, #add-upi',
+      target: '#add-upi',
       title: 'Add Your UPI ID',
       body: 'First, add your UPI ID so participants can pay you back. This is required for "I Paid" splits. Click "Add" to enter your UPI ID.',
       position: 'left',
-      requireAction: 'upi-added',
     },
     {
       id: 'whatsapp-connect',
@@ -48,7 +47,6 @@
       title: 'Create Your First Split',
       body: 'Enter a split name, total amount, and add participants. "I Paid" means you collect money. "Pay Merchant" (after scanning a QR) means everyone pays the merchant directly.',
       position: 'top',
-      requireAction: 'split-created',
     },
     {
       id: 'send-whatsapp',
@@ -58,15 +56,17 @@
       title: 'Send via WhatsApp',
       body: 'Click here to send payment requests to all participants via WhatsApp. They\'ll receive a link to verify their payment after paying.',
       position: 'bottom',
+      requiresSplit: true,
     },
     {
       id: 'track-payments',
       page: '/split',
       type: 'tooltip',
-      target: '.brutalist-border:has(.font-label-md:contains("Participants"))',
+      target: '#participants-list',
       title: 'Track Payments',
       body: 'See who has paid and who hasn\'t. When participants verify their payment via the link you sent, the badge changes from UNPAID to PAID automatically.',
       position: 'top',
+      requiresSplit: true,
     },
     {
       id: 'scan-qr',
@@ -125,6 +125,8 @@
 
     overlay.querySelector('.welcome-title').textContent = step.title;
     overlay.querySelector('.welcome-body').textContent = step.body;
+    overlay.querySelector('.welcome-btn.skip').style.display = '';
+    overlay.querySelector('.welcome-btn.start').textContent = 'Start Tutorial';
     overlay.classList.add('active');
 
     overlay.querySelector('.welcome-btn.start').onclick = () => {
@@ -138,9 +140,40 @@
     };
   }
 
+  function showRestartModal(message) {
+    const overlay = document.getElementById('tutorial-welcome');
+    if (!overlay) return;
+
+    overlay.querySelector('.welcome-title').textContent = 'Tutorial Interrupted';
+    overlay.querySelector('.welcome-body').textContent = message || 'It looks like you skipped some setup steps. Would you like to restart the tutorial from the beginning?';
+    overlay.querySelector('.welcome-btn.skip').style.display = '';
+    overlay.querySelector('.welcome-btn.skip').textContent = 'Skip Tutorial';
+    overlay.querySelector('.welcome-btn.start').textContent = 'Restart Tutorial';
+    overlay.classList.add('active');
+
+    overlay.querySelector('.welcome-btn.start').onclick = () => {
+      overlay.classList.remove('active');
+      restartTutorial();
+    };
+
+    overlay.querySelector('.welcome-btn.skip').onclick = () => {
+      overlay.classList.remove('active');
+      skipTutorial();
+    };
+  }
+
   function showTooltip(step) {
     const overlay = document.getElementById('tutorial-overlay');
     if (!overlay) return;
+
+    if (step.requiresSplit) {
+      const splitId = window.location.pathname.split('/').pop();
+      if (!splitId || splitId === 'split') {
+        overlay.classList.remove('active');
+        showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.');
+        return;
+      }
+    }
 
     const target = document.querySelector(step.target);
     if (!target) {
@@ -228,7 +261,18 @@
 
     setTutorialState({ step: index, completed: false });
 
-    if (window.location.pathname !== step.page && !step.page.startsWith(window.location.pathname)) {
+    const currentPath = window.location.pathname;
+    const isSplitPage = currentPath.startsWith('/split/') && currentPath.length > 6;
+
+    if (step.requiresSplit && !isSplitPage) {
+      const state = getTutorialState();
+      if (state && state.splitId) {
+        window.location.href = '/split/' + state.splitId + '?tutorial=' + index;
+      } else {
+        showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.');
+        return;
+      }
+    } else if (currentPath !== step.page && !currentPath.startsWith(step.page)) {
       window.location.href = step.page + '?tutorial=' + index;
       return;
     }
@@ -254,11 +298,17 @@
 
   function completeTutorial() {
     setTutorialState({ step: STEPS.length, completed: true });
+    window.location.href = '/';
   }
 
   function startTutorial() {
     setTutorialState({ step: 0, completed: false });
     nextStep(0);
+  }
+
+  function restartTutorial() {
+    clearTutorialState();
+    window.location.href = '/?tutorial=0';
   }
 
   function replayTutorial() {
@@ -274,6 +324,15 @@
     if (tutorialParam !== null) {
       const stepIndex = parseInt(tutorialParam, 10);
       if (!isNaN(stepIndex) && stepIndex >= 0 && stepIndex < STEPS.length) {
+        const step = STEPS[stepIndex];
+        if (step.requiresSplit) {
+          const currentPath = window.location.pathname;
+          const isSplitPage = currentPath.startsWith('/split/') && currentPath.length > 6;
+          if (!isSplitPage) {
+            setTimeout(() => showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.'), 500);
+            return;
+          }
+        }
         setTimeout(() => nextStep(stepIndex), 500);
         return;
       }
@@ -287,12 +346,22 @@
     if (state.completed) return;
 
     if (state.step !== undefined && state.step < STEPS.length) {
+      const step = STEPS[state.step];
+      if (step.requiresSplit) {
+        const currentPath = window.location.pathname;
+        const isSplitPage = currentPath.startsWith('/split/') && currentPath.length > 6;
+        if (!isSplitPage) {
+          setTimeout(() => showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.'), 500);
+          return;
+        }
+      }
       setTimeout(() => nextStep(state.step), 500);
     }
   }
 
   window.SplitSquadTutorial = {
     start: startTutorial,
+    restart: restartTutorial,
     replay: replayTutorial,
     skip: skipTutorial,
     complete: completeTutorial,

@@ -126,9 +126,9 @@
       </div>
     </div>
     <div class="pt-4 border-t-[3px] border-on-surface">
-      <button id="replay-tutorial" class="w-full brutalist-border brutalist-shadow bg-surface-container-lowest p-4 font-label-md text-label-md uppercase flex items-center justify-center gap-2 hover:bg-surface-variant transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none mb-3">
+      <button id="restart-tutorial" class="w-full brutalist-border brutalist-shadow bg-surface-container-lowest p-4 font-label-md text-label-md uppercase flex items-center justify-center gap-2 hover:bg-surface-variant transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none mb-3">
         <span class="material-symbols-outlined" data-icon="school">school</span>
-        Replay Tutorial
+        Restart Tutorial
       </button>
       <form action="/auth/logout" method="POST">
         <button type="submit" class="w-full brutalist-border brutalist-shadow bg-error p-4 font-label-md text-label-md uppercase text-on-error hover:bg-error-container hover:text-on-error-container transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
@@ -176,9 +176,9 @@
   </nav>
   <%- include('partials/tutorial') %>
   <script>
-    document.getElementById('replay-tutorial')?.addEventListener('click', () => {
+    document.getElementById('restart-tutorial')?.addEventListener('click', () => {
       if (window.SplitSquadTutorial) {
-        window.SplitSquadTutorial.replay();
+        window.SplitSquadTutorial.restart();
       }
     });
   </script>
