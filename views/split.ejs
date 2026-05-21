@@ -194,6 +194,8 @@
     const creatorAmount = creatorParticipant ? (creatorParticipant.amount / 100).toFixed(2) : '0.00';
     const splitId = '<%= split.id %>';
 
+    console.log('Split page loaded:', { paymentMode, merchantUpiId, merchantName, creatorAmount, splitId });
+
     function generateUpiUri(options) {
       const { pa, pn, am, tn, cu = 'INR' } = options;
       if (!pa) throw new Error('UPI ID is required');
@@ -207,6 +209,7 @@
     }
 
     function showUpiModal() {
+      console.log('Showing UPI modal');
       const upiUrl = generateUpiUri({
         pa: merchantUpiId,
         pn: merchantName,
@@ -232,46 +235,57 @@
       modal.style.display = 'none';
     }
 
-    document.getElementById('close-upi-modal').addEventListener('click', hideUpiModal);
+    const closeBtn = document.getElementById('close-upi-modal');
+    if (closeBtn) closeBtn.addEventListener('click', hideUpiModal);
 
-    document.getElementById('send-whatsapp').addEventListener('click', async () => {
-      const btn = document.getElementById('send-whatsapp');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="material-symbols-outlined filled" data-icon="hourglass_top">hourglass_top</span> Sending...';
+    const sendBtn = document.getElementById('send-whatsapp');
+    console.log('Send button found:', !!sendBtn);
 
-      try {
-        const res = await fetch('/api/splits/' + splitId + '/share', { method: 'POST' });
-        const data = await res.json();
+    if (sendBtn) {
+      sendBtn.addEventListener('click', async () => {
+        console.log('Send button clicked');
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
 
-        if (data.success) {
-          if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
-            showUpiModal();
+        try {
+          console.log('Fetching:', '/api/splits/' + splitId + '/share');
+          const res = await fetch('/api/splits/' + splitId + '/share', { method: 'POST' });
+          const data = await res.json();
+          console.log('Response:', data);
+
+          if (data.success) {
+            console.log('WhatsApp send successful');
+            if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
+              showUpiModal();
+            } else {
+              alert('Split shared via WhatsApp!');
+            }
           } else {
-            alert('Split shared via WhatsApp!');
+            const errorMsg = data.error || 'Unknown error';
+            console.log('WhatsApp send failed:', errorMsg);
+            if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
+              if (confirm('WhatsApp send failed: ' + errorMsg + '\n\nDo you still want to open UPI app to pay your share?')) {
+                showUpiModal();
+              }
+            } else {
+              alert('Failed to share: ' + errorMsg);
+            }
           }
-        } else {
-          const errorMsg = data.error || 'Unknown error';
+        } catch (e) {
+          console.error('Fetch error:', e);
           if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
-            if (confirm('WhatsApp send failed: ' + errorMsg + '\n\nDo you still want to open UPI app to pay your share?')) {
+            if (confirm('Network error. Do you still want to open UPI app to pay your share?')) {
               showUpiModal();
             }
           } else {
-            alert('Failed to share: ' + errorMsg);
+            alert('Failed to share split: ' + e.message);
           }
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Send via WhatsApp';
         }
-      } catch (e) {
-        if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
-          if (confirm('Network error. Do you still want to open UPI app to pay your share?')) {
-            showUpiModal();
-          }
-        } else {
-          alert('Failed to share split: ' + e.message);
-        }
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-symbols-outlined filled" data-icon="chat">chat</span> Send via WhatsApp';
-      }
-    });
+      });
+    }
   </script>
 </body>
 </html>
