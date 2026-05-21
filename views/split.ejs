@@ -186,13 +186,13 @@
     </a>
   </nav>
   <script>
-    const paymentMode = '<%= split.payment_mode %>';
-    const merchantUpiId = '<%= split.merchant_upi_id || '' %>';
-    const merchantName = '<%= split.merchant_name || 'Merchant' %>';
-    const splitDescription = '<%= split.description %>';
-    const creatorParticipant = <%= JSON.stringify(split.participants.find(p => p.phone === 'CREATOR') || null) %>;
+    const paymentMode = '<%- split.payment_mode %>';
+    const merchantUpiId = '<%- (split.merchant_upi_id || '').replace(/'/g, "\\'") %>';
+    const merchantName = '<%- (split.merchant_name || "Merchant").replace(/'/g, "\\'") %>';
+    const splitDescription = '<%- (split.description || "").replace(/'/g, "\\'").replace(/"/g, '\\"') %>';
+    const creatorParticipant = <%- JSON.stringify(split.participants.find(p => p.phone === 'CREATOR') || null) %>;
     const creatorAmount = creatorParticipant ? (creatorParticipant.amount / 100).toFixed(2) : '0.00';
-    const splitId = '<%= split.id %>';
+    const splitId = '<%- split.id %>';
 
     console.log('Split page loaded:', { paymentMode, merchantUpiId, merchantName, creatorAmount, splitId });
 
