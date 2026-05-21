@@ -313,7 +313,7 @@ async function createSplit(event) {
 
     selectedParticipants = [];
     renderSelectedChips();
-    window.location.href = `/split/${data.id}`;
+    window.location.href = `/app/split/${data.id}`;
   } catch {
     status.textContent = 'Failed to create split.';
   }

@@ -195,7 +195,7 @@
           const data = await res.json();
 
           if (data.success) {
-            window.location.href = '/';
+            window.location.href = '/app/';
           } else {
             alert('Failed to delete split: ' + (data.error || 'Unknown error'));
             deleteBtn.disabled = false;

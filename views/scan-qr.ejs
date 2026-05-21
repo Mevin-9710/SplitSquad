@@ -154,7 +154,7 @@
       }
 
       if (upiData && upiData.pa) {
-        window.location.href = `/?upi_pa=${encodeURIComponent(upiData.pa)}&upi_pn=${encodeURIComponent(upiData.pn || '')}&upi_am=${encodeURIComponent(upiData.am || '')}&upi_cu=${encodeURIComponent(upiData.cu || 'INR')}&upi_tn=${encodeURIComponent(upiData.tn || '')}`;
+        window.location.href = `/app/?upi_pa=${encodeURIComponent(upiData.pa)}&upi_pn=${encodeURIComponent(upiData.pn || '')}&upi_am=${encodeURIComponent(upiData.am || '')}&upi_cu=${encodeURIComponent(upiData.cu || 'INR')}&upi_tn=${encodeURIComponent(upiData.tn || '')}`;
       } else {
         statusEl.textContent = 'Not a valid UPI QR code. Try again.';
         document.getElementById('scanner-placeholder').classList.remove('hidden');
