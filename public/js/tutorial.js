@@ -8,14 +8,14 @@
   const STEPS = [
     {
       id: 'welcome',
-      page: '/',
+      page: '/app/',
       type: 'welcome',
       title: 'Welcome to SplitSquad!',
       body: 'Let\'s set up your account in 2 minutes. We\'ll walk you through adding your UPI ID, connecting WhatsApp, adding contacts, and creating your first split.',
     },
     {
       id: 'upi-setup',
-      page: '/settings',
+      page: '/app/settings',
       type: 'tooltip',
       target: '#add-upi',
       title: 'Add Your UPI ID',
@@ -25,7 +25,7 @@
     },
     {
       id: 'whatsapp-connect',
-      page: '/qr',
+      page: '/app/qr',
       type: 'tooltip',
       target: '#connect',
       title: 'Connect WhatsApp',
@@ -35,7 +35,7 @@
     },
     {
       id: 'add-contacts',
-      page: '/contacts',
+      page: '/app/contacts',
       type: 'tooltip',
       target: '#add-manually',
       title: 'Add Your Squad',
@@ -45,7 +45,7 @@
     },
     {
       id: 'create-split',
-      page: '/',
+      page: '/app/',
       type: 'tooltip',
       target: '#create-split-form',
       title: 'Create Your First Split',
@@ -55,7 +55,7 @@
     },
     {
       id: 'send-whatsapp',
-      page: '/split',
+      page: '/app/split',
       type: 'tooltip',
       target: '#send-whatsapp',
       title: 'Send via WhatsApp',
@@ -66,7 +66,7 @@
     },
     {
       id: 'track-payments',
-      page: '/split',
+      page: '/app/split',
       type: 'tooltip',
       target: '#participants-list',
       title: 'Track Payments',
@@ -75,7 +75,7 @@
     },
     {
       id: 'scan-qr',
-      page: '/scan-qr',
+      page: '/app/scan-qr',
       type: 'tooltip',
       target: '#start-scanner',
       title: 'Scan UPI QR Codes',
@@ -85,7 +85,7 @@
     },
     {
       id: 'complete',
-      page: '/',
+      page: '/app/',
       type: 'complete',
       title: 'You\'re All Set!',
       body: 'You now know how to use SplitSquad. Start splitting bills with your squad!',
@@ -158,7 +158,7 @@
   function waitForSplitCreation() {
     return new Promise((resolve) => {
       const check = () => {
-        if (window.location.pathname.startsWith('/split/') && window.location.pathname.length > 7) {
+        if (window.location.pathname.startsWith('/app/split/') && window.location.pathname.length > 11) {
           resolve(window.location.pathname.split('/').pop());
         } else {
           setTimeout(check, 500);
@@ -368,11 +368,11 @@
     setTutorialState(state);
 
     const currentPath = window.location.pathname;
-    const isSplitPage = currentPath.startsWith('/split/') && currentPath.length > 6;
+    const isSplitPage = currentPath.startsWith('/app/split/') && currentPath.length > 10;
 
     if (step.requiresSplit && !isSplitPage) {
       if (state.splitId) {
-        window.location.href = '/split/' + state.splitId + '?tutorial=' + index;
+        window.location.href = '/app/split/' + state.splitId + '?tutorial=' + index;
       } else {
         showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.');
         return;
@@ -410,7 +410,7 @@
     state.step = STEPS.length;
     state.completed = true;
     setTutorialState(state);
-    window.location.href = '/';
+    window.location.href = '/app/';
   }
 
   function startTutorial() {
@@ -439,7 +439,7 @@
   }
 
   function init() {
-    if (window.location.pathname === '/login') return;
+    if (window.location.pathname === '/app/login') return;
 
     const state = getTutorialState();
     if (state && (state.completed || state.skipped)) return;
@@ -453,7 +453,7 @@
         const step = STEPS[stepIndex];
         if (step.requiresSplit) {
           const currentPath = window.location.pathname;
-          const isSplitPage = currentPath.startsWith('/split/') && currentPath.length > 6;
+          const isSplitPage = currentPath.startsWith('/app/split/') && currentPath.length > 10;
           if (!isSplitPage) {
             setTimeout(() => showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.'), 500);
             return;
@@ -473,7 +473,7 @@
       const step = STEPS[state.step];
       if (step.requiresSplit) {
         const currentPath = window.location.pathname;
-        const isSplitPage = currentPath.startsWith('/split/') && currentPath.length > 6;
+        const isSplitPage = currentPath.startsWith('/app/split/') && currentPath.length > 10;
         if (!isSplitPage) {
           setTimeout(() => showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.'), 500);
           return;

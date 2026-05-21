@@ -52,7 +52,8 @@ app.use(authenticateUser);
 app.set('view engine', 'ejs');
 app.set('views', resolve(__dirname, '..', 'views'));
 
-app.use(express.static(resolve(__dirname, '..', 'public')));
+// Serve static files
+app.use('/app', express.static(resolve(__dirname, '..', 'public')));
 
 import webRouter from './routes/web/index.js';
 import apiSplitsRouter, { setEvents as setSplitsEvents } from './routes/api/splits.js';
@@ -66,7 +67,7 @@ setSplitsEvents(events);
 setEvolutionEvents(events);
 
 // Public routes
-app.use('/', authRouter);
+app.use('/app', authRouter);
 app.use('/', publicVerifyRouter);
 app.get('/health', (req, res) => {
   const connected = req.user ? isConnected(req.user.id) : false;
@@ -81,7 +82,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Protected routes
-app.use('/', requireAuth, webRouter);
+app.use('/app', requireAuth, webRouter);
 app.use('/api', requireAuth, apiSplitsRouter);
 app.use('/api', requireAuth, apiContactsRouter);
 app.use('/api', requireAuth, apiProfileRouter);
@@ -129,7 +130,7 @@ async function bootstrap() {
   const server = app.listen(config.PORT, () => {
     logger.info(`Server running on port ${config.PORT}`);
     logger.info(`Health check: http://localhost:${config.PORT}/health`);
-    logger.info(`Login page: http://localhost:${config.PORT}/login`);
+    logger.info(`Login page: http://localhost:${config.PORT}/app/login`);
   });
 
   setupGracefulShutdown(server);

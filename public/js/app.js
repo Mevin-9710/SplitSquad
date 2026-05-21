@@ -77,7 +77,7 @@ function createSplitCard(split) {
     </div>
     <div class="flex justify-between items-center border-t border-on-surface pt-2">
       <div class="font-headline-md text-headline-md">₹${amountDisplay}</div>
-      <a href="/split/${split.id}" class="font-label-sm text-label-sm uppercase text-primary hover:text-on-primary-container">View →</a>
+      <a href="/app/split/${split.id}" class="font-label-sm text-label-sm uppercase text-primary hover:text-on-primary-container">View →</a>
     </div>
   `;
   return card;
@@ -141,7 +141,7 @@ function renderDialogPanel(category) {
   if (contacts.length === 0) {
     panel.innerHTML = `<div class="flex flex-col items-center justify-center py-8 gap-2">
       <span class="material-symbols-outlined text-4xl text-outline" data-icon="person_off">person_off</span>
-      <p class="font-label-md text-label-md uppercase text-on-surface-variant">No contacts. <a href="/contacts" class="text-primary underline">Add some</a></p>
+      <p class="font-label-md text-label-md uppercase text-on-surface-variant">No contacts. <a href="/app/contacts" class="text-primary underline">Add some</a></p>
     </div>`;
     return;
   }
@@ -576,7 +576,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         selectedParticipants = [];
         renderSelectedChips();
-        window.location.href = `/split/${data.id}`;
+    window.location.href = `/app/split/${data.id}`;
       } catch {
         status.textContent = 'Failed to create split.';
       }

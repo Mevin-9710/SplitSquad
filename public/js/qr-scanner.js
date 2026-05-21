@@ -64,7 +64,7 @@ function useScannedData() {
 
   if (scannedUpiData.am) {
     sessionStorage.setItem('splitsquad_qr_data', JSON.stringify(scannedUpiData));
-    window.location.href = '/';
+    window.location.href = '/app/';
   } else {
     const modal = document.getElementById('amount-modal');
     modal.classList.remove('hidden');
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     scannedUpiData.am = amount;
     sessionStorage.setItem('splitsquad_qr_data', JSON.stringify(scannedUpiData));
-    window.location.href = '/';
+    window.location.href = '/app/';
   });
 
   document.getElementById('cancel-amount').addEventListener('click', () => {

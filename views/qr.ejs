@@ -4,71 +4,9 @@
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>WhatsApp - SplitSquad</title>
-  <link href="/images/logo.png" rel="icon" type="image/png"/>
-  <link href="/css/brutalist.css" rel="stylesheet"/>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          "colors": {
-            "tertiary": "#5d5f5f",
-            "surface-tint": "#785a00",
-            "on-primary": "#ffffff",
-            "inverse-on-surface": "#f1f1f1",
-            "outline-variant": "#d3c5ad",
-            "inverse-surface": "#2f3131",
-            "surface-bright": "#f9f9f9",
-            "on-primary-fixed-variant": "#5b4300",
-            "primary": "#785a00",
-            "tertiary-container": "#c4c5c5",
-            "surface-container-highest": "#e2e2e2",
-            "primary-container": "#f4bd31",
-            "on-primary-fixed": "#251a00",
-            "on-primary-container": "#694d00",
-            "tertiary-fixed-dim": "#c6c6c7",
-            "on-tertiary-container": "#505252",
-            "surface-container-lowest": "#ffffff",
-            "outline": "#817661",
-            "inverse-primary": "#f5be32",
-            "on-secondary-fixed-variant": "#474747",
-            "secondary": "#5e5e5e",
-            "surface-dim": "#dadada",
-            "secondary-fixed": "#e2e2e2",
-            "on-error-container": "#93000a",
-            "on-secondary-fixed": "#1b1b1b",
-            "surface-container-high": "#e8e8e8",
-            "tertiary-fixed": "#e2e2e2",
-            "surface-variant": "#e2e2e2",
-            "surface-container-low": "#f4f3f3",
-            "secondary-container": "#e2e2e2",
-            "on-surface": "#1a1c1c",
-            "secondary-fixed-dim": "#c6c6c6",
-            "on-error": "#ffffff",
-            "on-tertiary-fixed": "#1a1c1c",
-            "on-tertiary": "#ffffff",
-            "primary-fixed-dim": "#f5be32",
-            "surface": "#f9f9f9",
-            "on-secondary": "#ffffff",
-            "on-background": "#1a1c1c",
-            "on-tertiary-fixed-variant": "#454747",
-            "on-surface-variant": "#4f4634",
-            "error": "#ba1a1a",
-            "background": "#f9f9f9",
-            "surface-container": "#eeeeee",
-            "error-container": "#ffdad6",
-            "primary-fixed": "#ffdf9d",
-            "on-secondary-container": "#646464"
-          },
-          "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
-          "spacing": { "border-width-thin": "1px", "margin-desktop": "32px", "border-width-thick": "3px", "unit": "4px", "margin-mobile": "16px", "gutter": "16px" },
-          "fontFamily": { "headline-lg": ["Pixelify Sans", "sans-serif"], "body-md": ["Inter"], "label-sm": ["Space Mono"], "label-md": ["Space Mono"], "headline-lg-mobile": ["Pixelify Sans", "sans-serif"], "headline-md": ["Pixelify Sans", "sans-serif"], "body-lg": ["Inter"] },
-          "fontSize": { "headline-lg": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}], "label-sm": ["12px", {"lineHeight": "1.0", "fontWeight": "500"}], "label-md": ["14px", {"lineHeight": "1.0", "fontWeight": "500"}], "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}], "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}] }
-        }
-      }
-    }
-  </script>
+  <link href="/app/images/logo.svg" rel="icon" type="image/svg+xml"/>
+  <link href="/app/css/brutalist.css" rel="stylesheet"/>
+  <link href="/app/css/tailwind.css" rel="stylesheet"/>
   <style>
     .brutalist-border { border: 3px solid #1a1c1c; }
     .brutalist-border-thin { border: 1px solid #1a1c1c; }
@@ -78,11 +16,13 @@
     body { background-color: #f9f9f9; color: #1a1c1c; }
   </style>
   <style> body { min-height: max(884px, 100dvh); } </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body class="font-body-md bg-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 grid-bg">
   <%- include('partials/loading') %>
   <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-primary text-on-primary border-b-[3px] border-on-surface">
-    <a href="/" class="brutalist-border-thin p-1 hover:bg-primary-container hover:text-on-primary-container transition-colors">
+    <a href="/app/" class="brutalist-border-thin p-1 hover:bg-primary-container hover:text-on-primary-container transition-colors">
       <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
     </a>
     <span class="font-headline-md text-headline-md uppercase tracking-tighter">SplitSquad</span>
@@ -108,19 +48,19 @@
     </div>
   </main>
   <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 bg-surface px-2 border-t-[3px] border-on-surface">
-    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/">
-      <span class="material-symbols-outlined" data-icon="home">home</span>
-      <span class="font-label-sm text-label-sm uppercase mt-1">Home</span>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/app/">
+      <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="font-label-sm text-label-sm">Home</span>
     </a>
-    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/scan-qr">
-      <span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
-      <span class="font-label-sm text-label-sm uppercase mt-1">Scanner</span>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/app/scan-qr">
+      <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/><path d="M10 10h4v4h-4z"/><path d="M10 3v7M17 3v7M3 10h7M14 10h7"/><path d="M3 17h7M14 17h7"/><path d="M10 14v7M17 14v7"/></svg>
+      <span class="font-label-sm text-label-sm">Scan</span>
     </a>
-    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/contacts">
-      <span class="material-symbols-outlined" data-icon="groups">groups</span>
-      <span class="font-label-sm text-label-sm uppercase mt-1">Squad</span>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant grayscale hover:bg-surface-container-high p-2 min-w-[64px]" href="/app/contacts">
+      <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="font-label-sm text-label-sm">Contacts</span>
     </a>
-    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container border-[2px] border-on-surface shadow-[2px_2px_0px_#1a1c1c] scale-105 p-1 min-w-[64px]" href="/qr">
+    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container border-[2px] border-on-surface shadow-[2px_2px_0px_#1a1c1c] scale-105 p-1 min-w-[64px]" href="/app/qr">
       <span class="material-symbols-outlined filled" data-icon="chat">chat</span>
       <span class="font-label-sm text-label-sm uppercase mt-1">WhatsApp</span>
     </a>
@@ -137,8 +77,6 @@
       try {
         const statusRes = await fetch('/api/evolution/status');
         const status = await statusRes.json();
-        console.log('Status:', status);
-        
         if (status.connected) {
           stateEl.textContent = 'Connected';
           stateEl.classList.add('text-primary');
@@ -151,7 +89,6 @@
 
         const qrRes = await fetch('/api/evolution/qr-image');
         const qr = await qrRes.json();
-        console.log('QR response:', qr);
         
         if (qr.success && qr.qrImage) {
           qrImg.src = qr.qrImage;
@@ -178,7 +115,6 @@
           hintEl.textContent = `Generating QR code... (${++pollCount}s)`;
         }
       } catch (e) {
-        console.error('Refresh error:', e);
         stateEl.textContent = 'Error';
         hintEl.textContent = 'Failed to check status. Retrying...';
       }
@@ -186,10 +122,8 @@
 
     document.getElementById('connect').addEventListener('click', async () => {
       try {
-        console.log('Connecting WhatsApp...');
         const res = await fetch('/api/evolution/connect', { method: 'POST' });
         const data = await res.json();
-        console.log('Connect response:', data);
         
         if (data.success) {
           stateEl.textContent = 'Connecting...';
@@ -201,7 +135,6 @@
           hintEl.textContent = typeof data.error === 'object' ? JSON.stringify(data.error) : (data.error || 'Connection failed. Try again.');
         }
       } catch (e) {
-        console.error('Connect error:', e);
         stateEl.textContent = 'Error';
         hintEl.textContent = 'Failed to connect. Check server logs.';
       }

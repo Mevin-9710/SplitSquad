@@ -46,7 +46,7 @@ router.get('/qr', (req, res) => {
 });
 
 router.get('/connect', (req, res) => {
-  res.redirect('/qr');
+  res.redirect('/app/qr');
 });
 
 router.get('/contacts', async (req, res) => {

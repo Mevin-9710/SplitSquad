@@ -16,7 +16,7 @@ const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
 
 function getGoogleAuthUrl(req) {
   const baseUrl = config.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
-  const callbackUrl = `${baseUrl}/auth/google/callback`;
+  const callbackUrl = `${baseUrl}/app/auth/google/callback`;
   const state = crypto.randomBytes(16).toString('hex');
   const nonce = crypto.randomBytes(16).toString('hex');
 
@@ -35,7 +35,7 @@ function getGoogleAuthUrl(req) {
 }
 
 router.get('/login', (req, res) => {
-  if (req.user) return res.redirect('/');
+  if (req.user) return res.redirect('/app/');
   loginView(res, { error: null, success: null });
 });
 
@@ -69,7 +69,7 @@ router.post('/auth/register', async (req, res) => {
     setAuthCookie(res, token);
 
     logger.info('User registered', { userId: user.id, email: user.email });
-    return res.redirect('/');
+    return res.redirect('/app/');
   } catch (error) {
     logger.error('Registration failed', { error: error.message });
     return loginView(res, { error: 'Registration failed. Please try again.', success: null });
@@ -100,7 +100,7 @@ router.post('/auth/login', async (req, res) => {
     setAuthCookie(res, token);
 
     logger.info('User logged in', { userId: user.id, email: user.email });
-    return res.redirect('/');
+    return res.redirect('/app/');
   } catch (error) {
     logger.error('Login failed', { error: error.message });
     return loginView(res, { error: 'Login failed. Please try again.', success: null });
@@ -110,7 +110,7 @@ router.post('/auth/login', async (req, res) => {
 router.post('/auth/logout', (req, res) => {
   clearAuthCookie(res);
   logger.info('User logged out');
-  return res.redirect('/login');
+  return res.redirect('/app/login');
 });
 
 router.get('/auth/me', (req, res) => {
@@ -142,7 +142,7 @@ if (googleEnabled) {
   const pendingStates = new Map();
 
   router.get('/auth/google', (req, res) => {
-    if (req.user) return res.redirect('/');
+    if (req.user) return res.redirect('/app/');
     const { url, state, nonce } = getGoogleAuthUrl(req);
     pendingStates.set(state, { nonce, timestamp: Date.now() });
     setTimeout(() => pendingStates.delete(state), 10 * 60 * 1000);
@@ -154,17 +154,17 @@ if (googleEnabled) {
       const { code, state } = req.query;
 
       if (!code || !state) {
-        return res.redirect('/login?error=missing_params');
+        return res.redirect('/app/login?error=missing_params');
       }
 
       const pending = pendingStates.get(state);
       if (!pending) {
-        return res.redirect('/login?error=invalid_state');
+        return res.redirect('/app/login?error=invalid_state');
       }
       pendingStates.delete(state);
 
       const baseUrl = config.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
-      const callbackUrl = `${baseUrl}/auth/google/callback`;
+      const callbackUrl = `${baseUrl}/app/auth/google/callback`;
 
       const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
         method: 'POST',
@@ -181,7 +181,7 @@ if (googleEnabled) {
       if (!tokenRes.ok) {
         const err = await tokenRes.json();
         logger.error('Google token exchange failed', { error: err });
-        return res.redirect('/login?error=google_token_failed');
+        return res.redirect('/app/login?error=google_token_failed');
       }
 
       const tokens = await tokenRes.json();
@@ -192,7 +192,7 @@ if (googleEnabled) {
 
       if (!userInfoRes.ok) {
         logger.error('Google userinfo fetch failed');
-        return res.redirect('/login?error=google_userinfo_failed');
+        return res.redirect('/app/login?error=google_userinfo_failed');
       }
 
       const profile = await userInfoRes.json();
@@ -221,10 +221,10 @@ if (googleEnabled) {
       setAuthCookie(res, token);
 
       logger.info('User logged in via Google', { userId: user.id, email: user.email });
-      res.redirect('/');
+      res.redirect('/app/');
     } catch (error) {
       logger.error('Google OAuth callback error', { error: error.message });
-      res.redirect('/login?error=google_callback_failed');
+      res.redirect('/app/login?error=google_callback_failed');
     }
   });
 }
