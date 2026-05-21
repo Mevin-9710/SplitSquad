@@ -122,14 +122,16 @@ button, a {
 }
 
 #tutorial-tooltip {
-  position: absolute;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 10003;
   background: #f4bd31;
-  border: 3px solid #1a1c1c;
-  box-shadow: 4px 4px 0px #1a1c1c;
+  border-top: 3px solid #1a1c1c;
+  box-shadow: 0 -4px 0px #1a1c1c;
   padding: 20px;
-  max-width: 340px;
-  min-width: 280px;
+  max-width: 100%;
   pointer-events: auto;
 }
 
@@ -163,7 +165,9 @@ button, a {
 #tutorial-tooltip .tooltip-actions {
   display: flex;
   gap: 8px;
-  justify-content: space-between;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 12px;
 }
 
 #tutorial-tooltip .tooltip-btn {

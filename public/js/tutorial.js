@@ -20,7 +20,6 @@
       target: '#add-upi',
       title: 'Add Your UPI ID',
       body: 'First, add your UPI ID so participants can pay you back. Click "Add" to enter your UPI ID.',
-      position: 'left',
       waitMessage: 'Waiting for you to add a UPI ID...',
       verify: () => waitForElement('#upi-list .brutalist-border-thin, #upi-list > div:not(#upi-empty)'),
     },
@@ -31,7 +30,6 @@
       target: '#connect',
       title: 'Connect WhatsApp',
       body: 'Connect your WhatsApp to send split notifications to participants automatically. Click "Connect" to generate a QR code.',
-      position: 'bottom',
       waitMessage: 'Waiting for you to click "Connect"...',
       verify: () => waitForClick('#connect'),
     },
@@ -42,7 +40,6 @@
       target: '#add-manually',
       title: 'Add Your Squad',
       body: 'Add friends, family, or co-workers here. Click "Add Manually" or "Add from Contacts" to get started.',
-      position: 'bottom',
       waitMessage: 'Waiting for you to add a contact...',
       verify: () => waitForElement('#contacts-list > div:not(.brutalist-border-thin):not(:empty)'),
     },
@@ -53,7 +50,6 @@
       target: '#create-split-form',
       title: 'Create Your First Split',
       body: 'Enter a split name, total amount, and add participants. Then click "Create Split".',
-      position: 'top',
       waitMessage: 'Waiting for you to create a split...',
       verify: () => waitForSplitCreation(),
     },
@@ -64,7 +60,6 @@
       target: '#send-whatsapp',
       title: 'Send via WhatsApp',
       body: 'Click here to send payment requests to all participants via WhatsApp.',
-      position: 'bottom',
       waitMessage: 'Waiting for you to click "Send via WhatsApp"...',
       requiresSplit: true,
       verify: () => waitForClick('#send-whatsapp'),
@@ -76,8 +71,6 @@
       target: '#participants-list',
       title: 'Track Payments',
       body: 'See who has paid and who hasn\'t. When participants verify their payment, the badge changes from UNPAID to PAID automatically.',
-      position: 'top',
-      requiresSplit: true,
       autoAdvance: true,
     },
     {
@@ -87,7 +80,6 @@
       target: '#start-scanner',
       title: 'Scan UPI QR Codes',
       body: 'Scan a merchant\'s UPI QR code to auto-fill their payment details. Click "Start Scanner" to try it.',
-      position: 'top',
       waitMessage: 'Waiting for you to click "Start Scanner"...',
       verify: () => waitForClick('#start-scanner'),
     },
@@ -242,9 +234,9 @@
     const highlight = overlay.querySelector('.tutorial-highlight');
     const tooltip = overlay.querySelector('#tutorial-tooltip');
     const waitMsg = tooltip.querySelector('.tooltip-wait');
+    const doneBtn = tooltip.querySelector('.tooltip-btn.done');
     const nextBtn = tooltip.querySelector('.tooltip-btn.next');
     const skipBtn = tooltip.querySelector('.tooltip-btn.skip');
-    const doneBtn = tooltip.querySelector('.tooltip-btn.done');
 
     highlight.style.top = rect.top - 4 + 'px';
     highlight.style.left = rect.left - 4 + 'px';
@@ -255,32 +247,16 @@
     tooltip.querySelector('.tooltip-title').textContent = step.title;
     tooltip.querySelector('.tooltip-body').textContent = step.body;
 
-    const tooltipHeight = 220;
-    const tooltipWidth = 320;
-    let tooltipTop, tooltipLeft;
-
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    if (spaceBelow >= tooltipHeight + 20) {
-      tooltipTop = rect.bottom + 16;
-    } else if (spaceAbove >= tooltipHeight + 20) {
-      tooltipTop = Math.max(16, rect.top - tooltipHeight - 16);
-    } else {
-      tooltipTop = Math.max(16, window.innerHeight - tooltipHeight - 16);
-    }
-
-    tooltipLeft = Math.max(16, Math.min(rect.left, window.innerWidth - tooltipWidth - 16));
-
-    tooltip.style.top = tooltipTop + 'px';
-    tooltip.style.left = tooltipLeft + 'px';
-
     overlay.classList.add('active');
 
     if (step.verify) {
       waitMsg.style.display = 'none';
       doneBtn.style.display = '';
       nextBtn.style.display = 'none';
+
+      doneBtn.disabled = false;
+      doneBtn.textContent = 'I\'ve Done It';
+      doneBtn.style.opacity = '1';
 
       doneBtn.onclick = () => {
         doneBtn.disabled = true;
@@ -428,6 +404,7 @@
   }
 
   function startTutorial() {
+    if (isTutorialComplete()) return;
     setTutorialState({ step: 0, completed: false });
     nextStep(0);
   }
@@ -447,7 +424,11 @@
   }
 
   function init() {
+    if (window.location.pathname === '/login') return;
+
     const state = getTutorialState();
+    if (state && state.completed) return;
+
     const urlParams = new URLSearchParams(window.location.search);
     const tutorialParam = urlParams.get('tutorial');
 
@@ -472,8 +453,6 @@
       setTimeout(() => startTutorial(), 1000);
       return;
     }
-
-    if (state.completed) return;
 
     if (state.step !== undefined && state.step < STEPS.length) {
       const step = STEPS[state.step];
