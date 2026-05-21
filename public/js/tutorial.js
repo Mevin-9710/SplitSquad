@@ -244,6 +244,7 @@
     const waitMsg = tooltip.querySelector('.tooltip-wait');
     const nextBtn = tooltip.querySelector('.tooltip-btn.next');
     const skipBtn = tooltip.querySelector('.tooltip-btn.skip');
+    const doneBtn = tooltip.querySelector('.tooltip-btn.done');
 
     highlight.style.top = rect.top - 4 + 'px';
     highlight.style.left = rect.left - 4 + 'px';
@@ -254,26 +255,22 @@
     tooltip.querySelector('.tooltip-title').textContent = step.title;
     tooltip.querySelector('.tooltip-body').textContent = step.body;
 
+    const tooltipHeight = 220;
+    const tooltipWidth = 320;
     let tooltipTop, tooltipLeft;
-    switch (step.position) {
-      case 'top':
-        tooltipTop = Math.max(16, rect.top - 200);
-        tooltipLeft = Math.min(rect.left, window.innerWidth - 360);
-        break;
-      case 'bottom':
-        tooltipTop = rect.bottom + 16;
-        tooltipLeft = Math.min(rect.left, window.innerWidth - 360);
-        break;
-      case 'left':
-        tooltipTop = Math.max(16, rect.top - 50);
-        tooltipLeft = Math.max(16, rect.left - 360);
-        break;
-      case 'right':
-      default:
-        tooltipTop = Math.max(16, rect.top - 50);
-        tooltipLeft = rect.right + 16;
-        break;
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow >= tooltipHeight + 20) {
+      tooltipTop = rect.bottom + 16;
+    } else if (spaceAbove >= tooltipHeight + 20) {
+      tooltipTop = Math.max(16, rect.top - tooltipHeight - 16);
+    } else {
+      tooltipTop = Math.max(16, window.innerHeight - tooltipHeight - 16);
     }
+
+    tooltipLeft = Math.max(16, Math.min(rect.left, window.innerWidth - tooltipWidth - 16));
 
     tooltip.style.top = tooltipTop + 'px';
     tooltip.style.left = tooltipLeft + 'px';
@@ -281,50 +278,39 @@
     overlay.classList.add('active');
 
     if (step.verify) {
-      waitMsg.textContent = step.waitMessage || 'Waiting for you to complete this step...';
-      waitMsg.style.display = 'block';
-      nextBtn.disabled = true;
-      nextBtn.style.opacity = '0.5';
-      nextBtn.style.cursor = 'not-allowed';
+      waitMsg.style.display = 'none';
+      doneBtn.style.display = '';
+      nextBtn.style.display = 'none';
 
-      verificationTimeout = setTimeout(() => {
-        waitMsg.textContent = 'Taking too long? You can skip this step.';
-        skipBtn.textContent = 'Skip This Step';
-        skipBtn.style.display = '';
-      }, STEP_TIMEOUT_MS);
+      doneBtn.onclick = () => {
+        doneBtn.disabled = true;
+        doneBtn.textContent = 'Checking...';
+        doneBtn.style.opacity = '0.5';
+        waitMsg.textContent = 'Verifying...';
+        waitMsg.style.display = 'block';
 
-      step.verify().then(() => {
-        clearTimeout(verificationTimeout);
-        waitMsg.style.display = 'none';
-        nextBtn.disabled = false;
-        nextBtn.style.opacity = '1';
-        nextBtn.style.cursor = 'pointer';
-        nextBtn.textContent = 'Next →';
+        verificationTimeout = setTimeout(() => {
+          waitMsg.textContent = 'Taking too long? You can skip this step.';
+          skipBtn.textContent = 'Skip This Step';
+          skipBtn.style.display = '';
+        }, STEP_TIMEOUT_MS);
 
-        if (step.autoAdvance) {
-          setTimeout(() => {
-            overlay.classList.remove('active');
-            nextStep(step.index + 1);
-          }, 1500);
-        } else {
-          nextBtn.onclick = () => {
-            overlay.classList.remove('active');
-            nextStep(step.index + 1);
-          };
-        }
-      }).catch(() => {
-        clearTimeout(verificationTimeout);
-        waitMsg.textContent = 'Step timed out. You can skip or try again.';
-        nextBtn.disabled = false;
-        nextBtn.style.opacity = '1';
-        nextBtn.style.cursor = 'pointer';
-        nextBtn.onclick = () => {
+        step.verify().then(() => {
+          clearTimeout(verificationTimeout);
           overlay.classList.remove('active');
           nextStep(step.index + 1);
-        };
-      });
+        }).catch(() => {
+          clearTimeout(verificationTimeout);
+          doneBtn.disabled = false;
+          doneBtn.textContent = 'I\'ve Done It';
+          doneBtn.style.opacity = '1';
+          waitMsg.textContent = 'Not detected yet. Make sure you completed the step, then try again.';
+          waitMsg.style.display = 'block';
+        });
+      };
     } else if (step.autoAdvance) {
       waitMsg.style.display = 'none';
+      doneBtn.style.display = 'none';
       nextBtn.style.display = 'none';
       skipBtn.style.display = 'none';
 
@@ -334,10 +320,9 @@
       }, 3000);
     } else {
       waitMsg.style.display = 'none';
-      nextBtn.disabled = false;
-      nextBtn.style.opacity = '1';
-      nextBtn.style.cursor = 'pointer';
-      nextBtn.textContent = 'Next →';
+      doneBtn.style.display = 'none';
+      nextBtn.style.display = '';
+      nextBtn.textContent = 'Got It →';
 
       nextBtn.onclick = () => {
         overlay.classList.remove('active');

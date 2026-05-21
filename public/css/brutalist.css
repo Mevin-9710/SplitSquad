@@ -97,9 +97,9 @@ button, a {
   position: fixed;
   inset: 0;
   z-index: 10001;
-  background: rgba(0, 0, 0, 0.6);
+  background: transparent;
   display: none;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 #tutorial-overlay.active {
@@ -110,7 +110,7 @@ button, a {
   position: absolute;
   border: 3px solid #f4bd31;
   border-radius: 4px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
   z-index: 10002;
   pointer-events: none;
   animation: tutorial-pulse 2s ease-in-out infinite;
@@ -193,6 +193,15 @@ button, a {
 }
 
 #tutorial-tooltip .tooltip-btn.primary:hover {
+  background: #2f3131;
+}
+
+#tutorial-tooltip .tooltip-btn.done {
+  background: #1a1c1c;
+  color: #f4bd31;
+}
+
+#tutorial-tooltip .tooltip-btn.done:hover {
   background: #2f3131;
 }
 
