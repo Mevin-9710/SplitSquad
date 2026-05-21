@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Pixelify_Sans, Inter, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -24,6 +24,10 @@ const spaceMono = Space_Mono({
   variable: "--space-mono",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  themeColor: "#f4bd31",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -77,7 +81,6 @@ export const metadata: Metadata = {
     apple: "/images/logo.png",
   },
   manifest: "/manifest.json",
-  themeColor: "#f4bd31",
 };
 
 export default function RootLayout({
