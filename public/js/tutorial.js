@@ -3,6 +3,7 @@
 
   const TUTORIAL_COOKIE = 'splitsquad_tutorial';
   const TOTAL_STEPS = 8;
+  const STEP_TIMEOUT_MS = 120000;
 
   const STEPS = [
     {
@@ -18,8 +19,10 @@
       type: 'tooltip',
       target: '#add-upi',
       title: 'Add Your UPI ID',
-      body: 'First, add your UPI ID so participants can pay you back. This is required for "I Paid" splits. Click "Add" to enter your UPI ID.',
+      body: 'First, add your UPI ID so participants can pay you back. Click "Add" to enter your UPI ID.',
       position: 'left',
+      waitMessage: 'Waiting for you to add a UPI ID...',
+      verify: () => waitForElement('#upi-list .brutalist-border-thin, #upi-list > div:not(#upi-empty)'),
     },
     {
       id: 'whatsapp-connect',
@@ -29,6 +32,8 @@
       title: 'Connect WhatsApp',
       body: 'Connect your WhatsApp to send split notifications to participants automatically. Click "Connect" to generate a QR code.',
       position: 'bottom',
+      waitMessage: 'Waiting for you to click "Connect"...',
+      verify: () => waitForClick('#connect'),
     },
     {
       id: 'add-contacts',
@@ -36,8 +41,10 @@
       type: 'tooltip',
       target: '#add-manually',
       title: 'Add Your Squad',
-      body: 'Add friends, family, or co-workers here. You\'ll select them when creating splits. Click "Add Manually" or "Add from Contacts" to get started.',
+      body: 'Add friends, family, or co-workers here. Click "Add Manually" or "Add from Contacts" to get started.',
       position: 'bottom',
+      waitMessage: 'Waiting for you to add a contact...',
+      verify: () => waitForElement('#contacts-list > div:not(.brutalist-border-thin):not(:empty)'),
     },
     {
       id: 'create-split',
@@ -45,8 +52,10 @@
       type: 'tooltip',
       target: '#create-split-form',
       title: 'Create Your First Split',
-      body: 'Enter a split name, total amount, and add participants. "I Paid" means you collect money. "Pay Merchant" (after scanning a QR) means everyone pays the merchant directly.',
+      body: 'Enter a split name, total amount, and add participants. Then click "Create Split".',
       position: 'top',
+      waitMessage: 'Waiting for you to create a split...',
+      verify: () => waitForSplitCreation(),
     },
     {
       id: 'send-whatsapp',
@@ -54,9 +63,11 @@
       type: 'tooltip',
       target: '#send-whatsapp',
       title: 'Send via WhatsApp',
-      body: 'Click here to send payment requests to all participants via WhatsApp. They\'ll receive a link to verify their payment after paying.',
+      body: 'Click here to send payment requests to all participants via WhatsApp.',
       position: 'bottom',
+      waitMessage: 'Waiting for you to click "Send via WhatsApp"...',
       requiresSplit: true,
+      verify: () => waitForClick('#send-whatsapp'),
     },
     {
       id: 'track-payments',
@@ -64,9 +75,10 @@
       type: 'tooltip',
       target: '#participants-list',
       title: 'Track Payments',
-      body: 'See who has paid and who hasn\'t. When participants verify their payment via the link you sent, the badge changes from UNPAID to PAID automatically.',
+      body: 'See who has paid and who hasn\'t. When participants verify their payment, the badge changes from UNPAID to PAID automatically.',
       position: 'top',
       requiresSplit: true,
+      autoAdvance: true,
     },
     {
       id: 'scan-qr',
@@ -74,8 +86,10 @@
       type: 'tooltip',
       target: '#start-scanner',
       title: 'Scan UPI QR Codes',
-      body: 'Scan a merchant\'s UPI QR code to auto-fill their payment details. This enables "Pay Merchant" mode for direct payments to the merchant.',
+      body: 'Scan a merchant\'s UPI QR code to auto-fill their payment details. Click "Start Scanner" to try it.',
       position: 'top',
+      waitMessage: 'Waiting for you to click "Start Scanner"...',
+      verify: () => waitForClick('#start-scanner'),
     },
     {
       id: 'complete',
@@ -85,6 +99,9 @@
       body: 'You now know how to use SplitSquad. Start splitting bills with your squad!',
     },
   ];
+
+  let verificationTimeout = null;
+  let verificationAbort = null;
 
   function getCookie(name) {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -117,6 +134,46 @@
   function isTutorialComplete() {
     const state = getTutorialState();
     return state && state.completed === true;
+  }
+
+  function waitForElement(selector, timeout = 60000) {
+    return new Promise((resolve, reject) => {
+      const check = () => {
+        const el = document.querySelector(selector);
+        if (el && el.children.length > 0) {
+          resolve(el);
+        } else {
+          setTimeout(check, 500);
+        }
+      };
+      check();
+
+      setTimeout(() => reject(new Error('timeout')), timeout);
+    });
+  }
+
+  function waitForClick(selector) {
+    return new Promise((resolve) => {
+      const el = document.querySelector(selector);
+      if (el) {
+        el.addEventListener('click', () => resolve(true), { once: true });
+      } else {
+        setTimeout(() => waitForClick(selector).then(resolve), 500);
+      }
+    });
+  }
+
+  function waitForSplitCreation() {
+    return new Promise((resolve) => {
+      const check = () => {
+        if (window.location.pathname.startsWith('/split/') && window.location.pathname.length > 7) {
+          resolve(window.location.pathname.split('/').pop());
+        } else {
+          setTimeout(check, 500);
+        }
+      };
+      check();
+    });
   }
 
   function showWelcome(step) {
@@ -168,7 +225,7 @@
 
     if (step.requiresSplit) {
       const splitId = window.location.pathname.split('/').pop();
-      if (!splitId || splitId === 'split') {
+      if (!splitId || splitId === 'split' || splitId.length < 6) {
         overlay.classList.remove('active');
         showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.');
         return;
@@ -184,6 +241,9 @@
     const rect = target.getBoundingClientRect();
     const highlight = overlay.querySelector('.tutorial-highlight');
     const tooltip = overlay.querySelector('#tutorial-tooltip');
+    const waitMsg = tooltip.querySelector('.tooltip-wait');
+    const nextBtn = tooltip.querySelector('.tooltip-btn.next');
+    const skipBtn = tooltip.querySelector('.tooltip-btn.skip');
 
     highlight.style.top = rect.top - 4 + 'px';
     highlight.style.left = rect.left - 4 + 'px';
@@ -220,23 +280,87 @@
 
     overlay.classList.add('active');
 
-    const nextBtn = tooltip.querySelector('.tooltip-btn.next');
-    const skipBtn = tooltip.querySelector('.tooltip-btn.skip');
+    if (step.verify) {
+      waitMsg.textContent = step.waitMessage || 'Waiting for you to complete this step...';
+      waitMsg.style.display = 'block';
+      nextBtn.disabled = true;
+      nextBtn.style.opacity = '0.5';
+      nextBtn.style.cursor = 'not-allowed';
 
-    nextBtn.onclick = () => {
-      overlay.classList.remove('active');
-      nextStep(step.index + 1);
-    };
+      verificationTimeout = setTimeout(() => {
+        waitMsg.textContent = 'Taking too long? You can skip this step.';
+        skipBtn.textContent = 'Skip This Step';
+        skipBtn.style.display = '';
+      }, STEP_TIMEOUT_MS);
+
+      step.verify().then(() => {
+        clearTimeout(verificationTimeout);
+        waitMsg.style.display = 'none';
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
+        nextBtn.textContent = 'Next →';
+
+        if (step.autoAdvance) {
+          setTimeout(() => {
+            overlay.classList.remove('active');
+            nextStep(step.index + 1);
+          }, 1500);
+        } else {
+          nextBtn.onclick = () => {
+            overlay.classList.remove('active');
+            nextStep(step.index + 1);
+          };
+        }
+      }).catch(() => {
+        clearTimeout(verificationTimeout);
+        waitMsg.textContent = 'Step timed out. You can skip or try again.';
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
+        nextBtn.onclick = () => {
+          overlay.classList.remove('active');
+          nextStep(step.index + 1);
+        };
+      });
+    } else if (step.autoAdvance) {
+      waitMsg.style.display = 'none';
+      nextBtn.style.display = 'none';
+      skipBtn.style.display = 'none';
+
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        nextStep(step.index + 1);
+      }, 3000);
+    } else {
+      waitMsg.style.display = 'none';
+      nextBtn.disabled = false;
+      nextBtn.style.opacity = '1';
+      nextBtn.style.cursor = 'pointer';
+      nextBtn.textContent = 'Next →';
+
+      nextBtn.onclick = () => {
+        overlay.classList.remove('active');
+        nextStep(step.index + 1);
+      };
+    }
 
     skipBtn.onclick = () => {
       overlay.classList.remove('active');
-      skipTutorial();
+      clearTimeout(verificationTimeout);
+      if (verificationAbort) verificationAbort();
+      nextStep(step.index + 1);
     };
   }
 
   function showComplete(step) {
     const overlay = document.getElementById('tutorial-welcome');
     if (!overlay) return;
+
+    const state = getTutorialState();
+    if (state && state.tutorialSplitId) {
+      deleteTutorialSplit(state.tutorialSplitId);
+    }
 
     overlay.querySelector('.welcome-title').textContent = step.title;
     overlay.querySelector('.welcome-body').textContent = step.body;
@@ -250,7 +374,15 @@
     };
   }
 
+  function deleteTutorialSplit(splitId) {
+    if (!splitId || splitId.length < 6) return;
+    fetch('/api/splits/' + splitId, { method: 'DELETE' }).catch(() => {});
+  }
+
   function nextStep(index) {
+    clearTimeout(verificationTimeout);
+    if (verificationAbort) verificationAbort();
+
     if (index >= STEPS.length) {
       completeTutorial();
       return;
@@ -259,14 +391,16 @@
     const step = STEPS[index];
     step.index = index;
 
-    setTutorialState({ step: index, completed: false });
+    const state = getTutorialState() || {};
+    state.step = index;
+    state.completed = false;
+    setTutorialState(state);
 
     const currentPath = window.location.pathname;
     const isSplitPage = currentPath.startsWith('/split/') && currentPath.length > 6;
 
     if (step.requiresSplit && !isSplitPage) {
-      const state = getTutorialState();
-      if (state && state.splitId) {
+      if (state.splitId) {
         window.location.href = '/split/' + state.splitId + '?tutorial=' + index;
       } else {
         showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.');
@@ -293,11 +427,18 @@
   }
 
   function skipTutorial() {
+    clearTimeout(verificationTimeout);
+    if (verificationAbort) verificationAbort();
     clearTutorialState();
   }
 
   function completeTutorial() {
-    setTutorialState({ step: STEPS.length, completed: true });
+    clearTimeout(verificationTimeout);
+    if (verificationAbort) verificationAbort();
+    const state = getTutorialState() || {};
+    state.step = STEPS.length;
+    state.completed = true;
+    setTutorialState(state);
     window.location.href = '/';
   }
 
@@ -307,6 +448,10 @@
   }
 
   function restartTutorial() {
+    const state = getTutorialState();
+    if (state && state.tutorialSplitId) {
+      deleteTutorialSplit(state.tutorialSplitId);
+    }
     clearTutorialState();
     window.location.href = '/?tutorial=0';
   }

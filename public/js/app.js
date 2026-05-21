@@ -31,6 +31,21 @@ function normalizePhone(input) {
   return digits;
 }
 
+function getTutorialState() {
+  const match = document.cookie.match(/(^| )splitsquad_tutorial=([^;]+)/);
+  if (!match) return null;
+  try {
+    return JSON.parse(decodeURIComponent(match[2]));
+  } catch {
+    return null;
+  }
+}
+
+function setTutorialState(state) {
+  const expires = new Date(Date.now() + 30 * 864e5).toUTCString();
+  document.cookie = 'splitsquad_tutorial=' + encodeURIComponent(JSON.stringify(state)) + '; expires=' + expires + '; path=/';
+}
+
 function generateUpiUri(options) {
   const { pa, pn, am, tn, cu = 'INR' } = options;
   if (!pa) throw new Error('UPI ID is required');
@@ -478,7 +493,94 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   if (createForm) {
-    createForm.addEventListener('submit', createSplit);
+    createForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('create-split-status');
+      status.textContent = '';
+
+      const description = document.getElementById('description')?.value.trim();
+      const amount = parseFloat(document.getElementById('total-amount')?.value);
+
+      if (!description || Number.isNaN(amount)) {
+        status.textContent = 'Please fill in description and amount.';
+        return;
+      }
+
+      if (selectedParticipants.length === 0) {
+        status.textContent = 'Please add at least one participant.';
+        return;
+      }
+
+      if (currentPaymentMode === 'creator_paid') {
+        try {
+          const resp = await fetch('/api/profile/upi/default');
+          const data = await resp.json();
+          if (!data.hasDefault) {
+            status.textContent = 'Please add your UPI ID in Settings before creating a reimbursement split.';
+            return;
+          }
+        } catch {
+          status.textContent = 'Failed to verify UPI profile.';
+          return;
+        }
+      }
+
+      const totalPaise = Math.round(amount * 100);
+
+      let participantsList;
+      if (currentPaymentMode === 'merchant_direct') {
+        participantsList = [
+          { id: 'creator', name: 'You', phone: '0000000000', isCreator: true },
+          ...selectedParticipants,
+        ];
+      } else {
+        participantsList = [...selectedParticipants];
+      }
+
+      const sharesPaise = calculateEqualSplit(totalPaise, participantsList.length);
+
+      const participants = participantsList.map((p, i) => ({
+        name: p.name,
+        phone: p.isCreator ? 'creator' : p.phone,
+        amount: Math.round((sharesPaise[i] / 100) * 100) / 100,
+        isCreator: p.isCreator || false,
+      }));
+
+      const splitData = {
+        description,
+        amount,
+        participants,
+        paymentMode: currentPaymentMode,
+      };
+
+      if (qrData) {
+        splitData.merchantUpiId = qrData.pa;
+        splitData.merchantName = qrData.pn;
+        splitData.merchantCurrency = qrData.cu || 'INR';
+      }
+
+      try {
+        const response = await fetch('/api/splits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(splitData),
+        });
+        const data = await response.json();
+        if (!response.ok) return void (status.textContent = data.error || 'Failed to create split.');
+
+        const tutorialState = getTutorialState();
+        if (tutorialState && !tutorialState.completed) {
+          tutorialState.tutorialSplitId = data.id;
+          setTutorialState(tutorialState);
+        }
+
+        selectedParticipants = [];
+        renderSelectedChips();
+        window.location.href = `/split/${data.id}`;
+      } catch {
+        status.textContent = 'Failed to create split.';
+      }
+    });
   }
 
   if (document.getElementById('splits-container')) loadSplits();

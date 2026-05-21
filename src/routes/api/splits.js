@@ -296,4 +296,28 @@ router.post('/splits/:id/send-whatsapp/:participantId', enforceSendRateLimit, as
   }
 });
 
+router.delete('/splits/:id', (req, res) => {
+  try {
+    const split = getSplitById(req.params.id, req.user.id);
+    if (!split) return res.status(404).json({ success: false, error: 'Split not found' });
+
+    import('../../models/split.js').then(({ deleteSplit }) => {
+      if (deleteSplit) {
+        deleteSplit(req.params.id, req.user.id);
+      }
+      logger.info('Split deleted', { splitId: req.params.id, userId: req.user.id });
+      res.json({ success: true });
+    }).catch(() => {
+      const db = getDatabase();
+      db.run(`DELETE FROM participants WHERE split_id = ?`, [req.params.id]);
+      db.run(`DELETE FROM splits WHERE id = ? AND created_by = ?`, [req.params.id, req.user.id]);
+      logger.info('Split deleted', { splitId: req.params.id, userId: req.user.id });
+      res.json({ success: true });
+    });
+  } catch (error) {
+    logger.error('Error deleting split', { splitId: req.params.id, error: error.message });
+    res.status(500).json({ success: false, error: 'Failed to delete split' });
+  }
+});
+
 export default router;
