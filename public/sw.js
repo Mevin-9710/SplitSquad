@@ -1,4 +1,4 @@
-const CACHE_NAME = 'splitsquad-v4';
+const CACHE_NAME = 'splitsquad-v5';
 const STATIC_ASSETS = [
   '/app/',
   '/app/css/brutalist.css',
