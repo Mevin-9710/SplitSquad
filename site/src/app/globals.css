@@ -1,6 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400..700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #f4bd31;
+  --color-primary-container: #f4bd31;
+  --color-on-primary: #1a1c1c;
+  --color-on-surface: #1a1c1c;
+  --color-on-surface-variant: #666666;
+  --color-surface: #f9f9f9;
+  --color-surface-container: #f0f0f0;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #e8e8e8;
+  --color-error: #dc2626;
+  --color-whatsapp: #25D366;
+  --color-whatsappLight: #dcf8c6;
+
+  --font-headline: var(--font-pixelify);
+  --font-body: var(--font-inter);
+  --font-mono: var(--space-mono);
+
+  --text-headline-xl: 3.75rem;
+  --text-headline-xl--line-height: 1;
+  --text-headline-xl-mobile: 2.5rem;
+  --text-headline-xl-mobile--line-height: 1.1;
+  --text-headline-md: 1.5rem;
+  --text-headline-md--line-height: 1.25;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.75;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5;
+
+  --shadow-brutalist: 4px 4px 0px #1a1c1c;
+  --shadow-brutalist-sm: 2px 2px 0px #1a1c1c;
+  --shadow-brutalist-lg: 8px 8px 0px #1a1c1c;
+}
+
 :root {
   --primary: #f4bd31;
   --on-surface: #1a1c1c;
@@ -79,18 +113,6 @@ body {
 
 .brutalist-border-thin {
   border: 1px solid var(--on-surface);
-}
-
-.brutalist-shadow {
-  box-shadow: 4px 4px 0px var(--on-surface);
-}
-
-.brutalist-shadow-sm {
-  box-shadow: 2px 2px 0px var(--on-surface);
-}
-
-.brutalist-shadow-lg {
-  box-shadow: 8px 8px 0px var(--on-surface);
 }
 
 .brutalist-btn {
