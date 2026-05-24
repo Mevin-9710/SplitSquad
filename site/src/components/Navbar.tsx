@@ -77,7 +77,7 @@ export function Navbar() {
 
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-2 border-2 border-on-surface hover:bg-primary-container transition-colors"
+          className="md:hidden p-3 border-2 border-on-surface hover:bg-primary-container transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
           style={{ borderWidth: 2, borderColor: "#1a1c1c" }}
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

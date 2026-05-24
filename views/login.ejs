@@ -4,6 +4,7 @@
   <script>window.addEventListener('pageshow',function(e){if(e.persisted)location.reload()})</script>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#f4bd31"/>
   <title>Login - SplitSquad</title>
   <link href="/app/images/S.png" rel="icon" type="image/png"/>
   <link href="/app/css/brutalist.css" rel="stylesheet"/>
@@ -19,6 +20,20 @@
   <style> body { min-height: max(884px, 100dvh); } </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Google Tag Manager -->
+  <% if (typeof analytics !== 'undefined' && analytics.gtmId) { %>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<%= analytics.gtmId %>');</script>
+  <% } %>
+  <!-- Google Analytics 4 -->
+  <% if (typeof analytics !== 'undefined' && analytics.ga4Id) { %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%= analytics.ga4Id %>"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '<%= analytics.ga4Id %>');
+  </script>
+  <% } %>
 </head>
 <body class="font-body-md bg-background min-h-screen flex flex-col items-center justify-center p-margin-mobile grid-bg">
   <%- include('partials/loading') %>
@@ -107,6 +122,24 @@
       document.getElementById('register-form').classList.remove('hidden');
       document.getElementById('login-form').classList.add('hidden');
     });
+  </script>
+  <script src="/app/js/analytics.js"></script>
+  <script>
+    document.getElementById('register-form')?.addEventListener('submit', function() {
+      if (window.SplitSquadAnalytics) {
+        window.SplitSquadAnalytics.track('signup_started', { method: 'email' });
+      }
+    });
+    (function() {
+      var googleBtn = document.querySelector('a[href="/app/auth/google"]');
+      if (googleBtn) {
+        googleBtn.addEventListener('click', function() {
+          if (window.SplitSquadAnalytics) {
+            window.SplitSquadAnalytics.track('signup_started', { method: 'google' });
+          }
+        });
+      }
+    })();
   </script>
 </body>
 </html>

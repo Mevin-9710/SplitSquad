@@ -269,30 +269,9 @@
 
       doneBtn.onclick = () => {
         target.removeEventListener('click', onTargetClick);
-        doneBtn.disabled = true;
-        doneBtn.textContent = 'Checking...';
-        doneBtn.style.opacity = '0.5';
-        waitMsg.textContent = 'Verifying...';
-        waitMsg.style.display = 'block';
-
-        verificationTimeout = setTimeout(() => {
-          waitMsg.textContent = 'Taking too long? You can skip this step.';
-          skipBtn.textContent = 'Skip This Step';
-          skipBtn.style.display = '';
-        }, STEP_TIMEOUT_MS);
-
-        step.verify().then(() => {
-          clearTimeout(verificationTimeout);
-          overlay.classList.remove('active');
-          nextStep(step.index + 1);
-        }).catch(() => {
-          clearTimeout(verificationTimeout);
-          doneBtn.disabled = false;
-          doneBtn.textContent = 'I\'ve Done It';
-          doneBtn.style.opacity = '1';
-          waitMsg.textContent = 'Not detected yet. Make sure you completed the step, then try again.';
-          waitMsg.style.display = 'block';
-        });
+        overlay.classList.remove('active');
+        clearTimeout(verificationTimeout);
+        nextStep(step.index + 1);
       };
     } else if (step.autoAdvance) {
       waitMsg.style.display = 'none';
@@ -320,7 +299,8 @@
       overlay.classList.remove('active');
       clearTimeout(verificationTimeout);
       if (verificationAbort) verificationAbort();
-      nextStep(step.index + 1);
+      skipTutorial();
+      window.location.href = '/app/';
     };
   }
 
@@ -471,11 +451,13 @@
 
     if (state.step !== undefined && state.step < STEPS.length) {
       const step = STEPS[state.step];
+      if (window.location.pathname !== step.page && !window.location.pathname.startsWith(step.page)) {
+        return;
+      }
       if (step.requiresSplit) {
         const currentPath = window.location.pathname;
         const isSplitPage = currentPath.startsWith('/app/split/') && currentPath.length > 10;
         if (!isSplitPage) {
-          setTimeout(() => showRestartModal('This step requires a split to be created first. Please restart the tutorial and complete the "Create Your First Split" step.'), 500);
           return;
         }
       }

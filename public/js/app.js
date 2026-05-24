@@ -313,7 +313,9 @@ async function createSplit(event) {
 
     selectedParticipants = [];
     renderSelectedChips();
-    window.location.href = `/app/split/${data.id}`;
+    var createdParam = 'created=1';
+    if (data.isFirstSplit) createdParam += '&first=1';
+    window.location.href = '/app/split/' + data.id + '?' + createdParam;
   } catch {
     status.textContent = 'Failed to create split.';
   }
@@ -576,7 +578,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         selectedParticipants = [];
         renderSelectedChips();
-    window.location.href = `/app/split/${data.id}`;
+        var createdParam2 = 'created=1';
+        if (data.isFirstSplit) createdParam2 += '&first=1';
+        window.location.href = '/app/split/' + data.id + '?' + createdParam2;
       } catch {
         status.textContent = 'Failed to create split.';
       }

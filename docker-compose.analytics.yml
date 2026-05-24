@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  analytics-aggregator:
+    build:
+      context: ./analytics-aggregator
+      dockerfile: Dockerfile
+    container_name: splitsquad-aggregator
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    volumes:
+      - ./analytics-aggregator/data:/app/data
+      - ./vault:/app/vault
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ai-engine:
+    build:
+      context: ./ai-engine
+      dockerfile: Dockerfile
+    container_name: splitsquad-ai-engine
+    ports:
+      - "3002:3002"
+    env_file:
+      - .env
+    volumes:
+      - ./vault:/app/vault
+      - ./logs:/app/logs
+    restart: unless-stopped
+    depends_on:
+      - analytics-aggregator
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

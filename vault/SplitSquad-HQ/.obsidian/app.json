@@ -1,0 +1,24 @@
+{
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "Assets",
+  "communityPluginSortOrder": "download",
+  "communityThemeSortOrder": "download",
+  "defaultViewMode": "source",
+  "livePreview": true,
+  "newFileLocation": "folder",
+  "newFileFolderPath": "Daily Reports",
+  "newLinkFormat": "relative",
+  "promptDelete": false,
+  "readableLineLength": true,
+  "showLineNumber": false,
+  "spellcheck": false,
+  "strictLineBreaks": false,
+  "tabSize": 2,
+  "theme": "obsidian",
+  "userIgnoreFilters": [
+    "node_modules/",
+    ".git/",
+    "data/"
+  ],
+  "propertiesInDocument": "visible"
+}

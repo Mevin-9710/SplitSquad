@@ -99,18 +99,18 @@ export default function UpiExpenseSplittingPage() {
           <div className="grid gap-6">
             {steps.map((step, i) => (
               <ScrollReveal key={i} direction="up" delay={i * 0.1}>
-                <div className="flex items-start gap-6 p-6 bg-surface-container-lowest border-2 border-on-surface shadow-brutalist-sm" style={{ borderWidth: 2, borderColor: "#1a1c1c" }}>
-                  <div className="flex-shrink-0 w-14 h-14 bg-primary-container border-2 border-on-surface flex items-center justify-center shadow-brutalist-sm" style={{ borderWidth: 2, borderColor: "#1a1c1c" }}>
+                <div className="flex items-start gap-4 md:gap-6 p-4 md:p-6 bg-surface-container-lowest border-2 border-on-surface shadow-brutalist-sm" style={{ borderWidth: 2, borderColor: "#1a1c1c" }}>
+                  <div className="flex-shrink-0 w-10 h-10 md:w-14 md:h-14 bg-primary-container border-2 border-on-surface flex items-center justify-center shadow-brutalist-sm" style={{ borderWidth: 2, borderColor: "#1a1c1c" }}>
                     <div className="text-center">
-                      <span className="font-headline text-lg font-bold">{i + 1}</span>
+                      <span className="font-headline text-sm md:text-lg font-bold">{i + 1}</span>
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <div className="text-primary">{step.icon}</div>
-                      <h3 className="font-headline text-headline-md uppercase tracking-tight">{step.title}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 md:gap-3 mb-1">
+                      <div className="text-primary flex-shrink-0">{step.icon}</div>
+                      <h3 className="font-headline text-headline-md uppercase tracking-tight break-words">{step.title}</h3>
                     </div>
-                    <p className="font-body text-body-lg text-on-surface-variant">{step.desc}</p>
+                    <p className="font-body text-body-md md:text-body-lg text-on-surface-variant">{step.desc}</p>
                   </div>
                 </div>
               </ScrollReveal>

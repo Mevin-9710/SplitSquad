@@ -1,6 +1,5 @@
 import { getDatabase } from './connection.js';
 import logger from '../utils/logger.js';
-
 const CREATE_USERS_TABLE = `
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,

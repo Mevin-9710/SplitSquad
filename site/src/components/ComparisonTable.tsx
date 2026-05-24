@@ -34,15 +34,15 @@ export function ComparisonTable({
         )}
       </ScrollReveal>
 
-      <div className="min-w-[600px]">
+      <div className="min-w-[300px] md:min-w-[600px]">
         <div className="grid grid-cols-3 gap-0 border-3 border-on-surface shadow-brutalist bg-surface-container-lowest" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
-          <div className="p-4 bg-surface-container border-r-2 border-on-surface font-mono text-xs uppercase text-on-surface-variant" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
+          <div className="p-2 md:p-4 bg-surface-container border-r-2 border-on-surface font-mono text-[10px] md:text-xs uppercase text-on-surface-variant" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
             Feature
           </div>
-          <div className="p-4 bg-primary-container border-r-2 border-on-surface font-headline text-sm uppercase tracking-tight text-on-surface text-center font-bold" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
+          <div className="p-2 md:p-4 bg-primary-container border-r-2 border-on-surface font-headline text-[10px] md:text-sm uppercase tracking-tight text-on-surface text-center font-bold" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
             {ourLabel}
           </div>
-          <div className="p-4 bg-surface-container font-headline text-sm uppercase tracking-tight text-center">
+          <div className="p-2 md:p-4 bg-surface-container font-headline text-[10px] md:text-sm uppercase tracking-tight text-center">
             {theirLabel}
           </div>
 
@@ -57,29 +57,29 @@ export function ComparisonTable({
                 i < rows.length - 1 ? "border-b-2 border-on-surface/20" : ""
               }`}
             >
-              <div className="p-4 border-r-2 border-on-surface/20 font-body text-body-md bg-surface-container-lowest" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
+              <div className="p-2 md:p-4 border-r-2 border-on-surface/20 font-body text-[11px] md:text-body-md bg-surface-container-lowest" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
                 {row.feature}
               </div>
-              <div className="p-4 border-r-2 border-on-surface/20 flex items-center justify-center bg-primary-container/5" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
+              <div className="p-2 md:p-4 border-r-2 border-on-surface/20 flex items-center justify-center bg-primary-container/5" style={{ borderRightWidth: 2, borderColor: "#1a1c1c" }}>
                 {typeof row.ours === "boolean" ? (
                   row.ours ? (
-                    <Check className="w-5 h-5 text-whatsapp" />
+                    <Check className="w-4 h-4 md:w-5 md:h-5 text-whatsapp" />
                   ) : (
-                    <X className="w-5 h-5 text-error" />
+                    <X className="w-4 h-4 md:w-5 md:h-5 text-error" />
                   )
                 ) : (
-                  <span className="font-body text-body-md text-center">{row.ours}</span>
+                  <span className="font-body text-[11px] md:text-body-md text-center">{row.ours}</span>
                 )}
               </div>
-              <div className="p-4 flex items-center justify-center bg-surface-container-lowest">
+              <div className="p-2 md:p-4 flex items-center justify-center bg-surface-container-lowest">
                 {typeof row.theirs === "boolean" ? (
                   row.theirs ? (
-                    <Check className="w-5 h-5 text-whatsapp" />
+                    <Check className="w-4 h-4 md:w-5 md:h-5 text-whatsapp" />
                   ) : (
-                    <X className="w-5 h-5 text-error" />
+                    <X className="w-4 h-4 md:w-5 md:h-5 text-error" />
                   )
                 ) : (
-                  <span className="font-body text-body-md text-center">{row.theirs}</span>
+                  <span className="font-body text-[11px] md:text-body-md text-center">{row.theirs}</span>
                 )}
               </div>
             </motion.div>

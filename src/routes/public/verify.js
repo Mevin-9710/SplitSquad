@@ -5,6 +5,11 @@ import logger from '../../utils/logger.js';
 
 const router = express.Router();
 
+const analyticsView = {
+  gtmId: process.env.GTM_CONTAINER_ID || null,
+  ga4Id: process.env.GA4_MEASUREMENT_ID || null,
+};
+
 router.get('/verify/:code', (req, res) => {
   try {
     const participant = getParticipantByVerificationCode(req.params.code);
@@ -14,6 +19,7 @@ router.get('/verify/:code', (req, res) => {
         participant: null,
         alreadyVerified: false,
         success: false,
+        analytics: analyticsView,
       });
     }
 
@@ -40,6 +46,7 @@ router.get('/verify/:code', (req, res) => {
       },
       alreadyVerified: participant.participant_verified === 1,
       success: false,
+      analytics: analyticsView,
     });
   } catch (error) {
     logger.error('Error loading verification page', { error: error.message });
@@ -48,6 +55,7 @@ router.get('/verify/:code', (req, res) => {
       participant: null,
       alreadyVerified: false,
       success: false,
+      analytics: analyticsView,
     });
   }
 });

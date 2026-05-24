@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#f4bd31"/>
   <script>window.addEventListener('pageshow',function(e){if(e.persisted)location.reload()})</script>
   <title>SplitSquad</title>
   <link href="/app/images/S.png" rel="icon" type="image/png"/>
@@ -22,6 +23,20 @@
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Google Tag Manager -->
+  <% if (typeof analytics !== 'undefined' && analytics.gtmId) { %>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<%= analytics.gtmId %>');</script>
+  <% } %>
+  <!-- Google Analytics 4 -->
+  <% if (typeof analytics !== 'undefined' && analytics.ga4Id) { %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%= analytics.ga4Id %>"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '<%= analytics.ga4Id %>');
+  </script>
+  <% } %>
 </head>
 <body class="font-body-md bg-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 grid-bg">
   <%- include('partials/loading') %>
@@ -150,7 +165,41 @@
     </a>
   </nav>
   <%- include('partials/tutorial') %>
-  <script src="/app/js/app.min.js"></script>
+  <script src="/app/js/analytics.js"></script>
+  <script>
+    (function() {
+      var sa = window.SplitSquadAnalytics;
+      if (!sa) return;
+
+      var params = new URLSearchParams(window.location.search);
+      var signup = params.get('signup') === '1';
+      var login = params.get('login') === '1';
+      <% if (typeof userFull !== 'undefined' && userFull) { %>
+      var user = <%- JSON.stringify(userFull) %>;
+      sa.setUserProperties({
+        user_type: 'free',
+        signup_method: user.google_id ? 'google' : 'email',
+        first_seen_date: user.created_at ? user.created_at.split('T')[0] : ''
+      });
+      if (signup) {
+        sa.track('sign_up_completed', { method: user.google_id ? 'google' : 'email' });
+      }
+      if (login) {
+        var lastLogin = user.last_login ? new Date(user.last_login) : null;
+        if (lastLogin) {
+          var daysSince = Math.floor((Date.now() - lastLogin.getTime()) / (1000 * 60 * 60 * 24));
+          if (daysSince > 0) {
+            sa.track('returning_user', { days_since_last_visit: daysSince });
+          }
+        }
+      }
+      <% } %>
+      if (signup || login) {
+        window.history.replaceState({}, document.title, '/app/');
+      }
+    })();
+  </script>
+  <script src="/app/js/app.js"></script>
   <script>
     (function() {
       const banner = document.getElementById('pwa-install-banner');

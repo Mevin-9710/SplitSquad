@@ -117,6 +117,9 @@ router.post('/splits', (req, res) => {
       merchantCurrency: merchantCurrency || 'INR',
     };
 
+    const existingSplits = getRecentSplits(1, req.user.id);
+    const isFirstSplit = !existingSplits || existingSplits.length === 0;
+
     const splitId = createSplit(description.trim(), totalPaise, req.user.id, splitOptions);
     for (const participant of validated) {
       const verificationCode = participant.isCreator ? null : uuidv4();
@@ -124,6 +127,8 @@ router.post('/splits', (req, res) => {
     }
 
     const split = getSplitById(splitId, req.user.id);
+    split.isFirstSplit = isFirstSplit;
+
     res.status(201).json(split);
   } catch {
     res.status(500).json({ error: 'Failed to create split' });

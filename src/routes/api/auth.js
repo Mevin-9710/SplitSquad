@@ -8,7 +8,11 @@ import { config } from '../../config/index.js';
 
 const router = express.Router();
 const googleEnabled = !!(config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET);
-const loginView = (res, opts) => res.render('login', { googleEnabled, ...opts });
+const analyticsView = {
+  gtmId: process.env.GTM_CONTAINER_ID || null,
+  ga4Id: process.env.GA4_MEASUREMENT_ID || null,
+};
+const loginView = (res, opts) => res.render('login', { googleEnabled, analytics: analyticsView, ...opts });
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -69,7 +73,7 @@ router.post('/auth/register', async (req, res) => {
     setAuthCookie(res, token);
 
     logger.info('User registered', { userId: user.id, email: user.email });
-    return res.redirect('/app/');
+    return res.redirect('/app/?signup=1');
   } catch (error) {
     logger.error('Registration failed', { error: error.message });
     return loginView(res, { error: 'Registration failed. Please try again.', success: null });
@@ -84,12 +88,14 @@ router.post('/auth/login', async (req, res) => {
       return loginView(res, { error: 'Email and password are required', success: null });
     }
 
-    const user = findUserByEmail(email.toLowerCase());
-    if (!user || !user.password_hash) {
+    const user = await findUserByEmail(email);
+
+    if (!user) {
       return loginView(res, { error: 'Invalid email or password', success: null });
     }
 
-    const valid = await bcrypt.compare(password, user.password_hash);
+    const valid = await bcrypt.compare(password, user.password);
+
     if (!valid) {
       return loginView(res, { error: 'Invalid email or password', success: null });
     }
@@ -100,7 +106,7 @@ router.post('/auth/login', async (req, res) => {
     setAuthCookie(res, token);
 
     logger.info('User logged in', { userId: user.id, email: user.email });
-    return res.redirect('/app/');
+    return res.redirect('/app/?login=1');
   } catch (error) {
     logger.error('Login failed', { error: error.message });
     return loginView(res, { error: 'Login failed. Please try again.', success: null });
@@ -198,6 +204,7 @@ if (googleEnabled) {
       const profile = await userInfoRes.json();
 
       let user = findUserByGoogleId(profile.sub);
+      let isNewUser = false;
 
       if (!user) {
         const existingEmail = profile.email ? findUserByEmail(profile.email.toLowerCase()) : null;
@@ -212,6 +219,7 @@ if (googleEnabled) {
             googleId: profile.sub,
             avatarUrl: profile.picture,
           });
+          isNewUser = true;
         }
       }
 
@@ -221,7 +229,7 @@ if (googleEnabled) {
       setAuthCookie(res, token);
 
       logger.info('User logged in via Google', { userId: user.id, email: user.email });
-      res.redirect('/app/');
+      res.redirect(`/app/${isNewUser ? '?signup=1' : '?login=1'}`);
     } catch (error) {
       logger.error('Google OAuth callback error', { error: error.message });
       res.redirect('/app/login?error=google_callback_failed');

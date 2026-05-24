@@ -4,6 +4,7 @@
   <script>window.addEventListener('pageshow',function(e){if(e.persisted)location.reload()})</script>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#f4bd31"/>
   <title><%= split.description %> - SplitSquad</title>
   <link href="/app/images/S.png" rel="icon" type="image/png"/>
   <link href="/app/css/brutalist.css" rel="stylesheet"/>
@@ -19,6 +20,18 @@
   <style> body { min-height: max(884px, 100dvh); } </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <% if (typeof analytics !== 'undefined' && analytics.gtmId) { %>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<%= analytics.gtmId %>');</script>
+  <% } %>
+  <% if (typeof analytics !== 'undefined' && analytics.ga4Id) { %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%= analytics.ga4Id %>"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '<%= analytics.ga4Id %>');
+  </script>
+  <% } %>
 </head>
 <body class="font-body-md bg-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 grid-bg">
   <%- include('partials/loading') %>
@@ -132,6 +145,32 @@
     </a>
   </nav>
   <%- include('partials/tutorial') %>
+  <script src="/app/js/analytics.js"></script>
+  <script>
+    (function() {
+      var sa = window.SplitSquadAnalytics;
+      if (!sa) return;
+
+      sa.track('split_viewed', {
+        split_id: '<%= split.id %>',
+        split_type: '<%= split.payment_mode === "merchant_direct" ? "merchant_direct" : "group_bill" %>',
+        participant_count: <%= split.participants.length %>
+      });
+
+      var cp = new URLSearchParams(window.location.search);
+      if (cp.get('created') === '1') {
+        var totalAmount = <%= split.total_amount %>;
+        var eventName = cp.get('first') === '1' ? 'first_split_created' : 'split_created';
+        sa.track(eventName, {
+          split_type: '<%= split.payment_mode === "merchant_direct" ? "merchant_direct" : "group_bill" %>',
+          participant_count: <%= split.participants.length %>,
+          total_amount: Math.round(totalAmount / 100 * 100) / 100,
+          currency: '<%= split.merchant_currency || "INR" %>'
+        });
+        window.history.replaceState({}, document.title, '/app/split/<%= split.id %>');
+      }
+    })();
+  </script>
   <script>
     const paymentMode = '<%- split.payment_mode %>';
     const merchantUpiId = '<%- (split.merchant_upi_id || '').replace(/'/g, "\\'") %>';
@@ -196,6 +235,7 @@
           const data = await res.json();
 
           if (data.success) {
+            try { if (window.SplitSquadAnalytics) window.SplitSquadAnalytics.track('split_deleted', { split_id: splitId }); } catch(e) {}
             window.location.href = '/app/';
           } else {
             alert('Failed to delete split: ' + (data.error || 'Unknown error'));
@@ -210,6 +250,32 @@
       });
     }
 
+    function trackInviteSent() {
+      try {
+        if (window.SplitSquadAnalytics) {
+          window.SplitSquadAnalytics.track('invite_sent', {
+            method: 'whatsapp',
+            split_id: splitId
+          });
+        }
+      } catch (e) {}
+    }
+
+    function trackSettlementInitiated() {
+      try {
+        if (window.SplitSquadAnalytics) {
+          window.SplitSquadAnalytics.track('settlement_initiated', {
+            split_type: paymentMode === 'merchant_direct' ? 'merchant_direct' : 'group_bill'
+          });
+        }
+      } catch (e) {}
+    }
+
+    function showUpiModalWithTracking() {
+      trackSettlementInitiated();
+      showUpiModal();
+    }
+
     const sendBtn = document.getElementById('send-whatsapp');
 
     if (sendBtn) {
@@ -222,8 +288,9 @@
           const data = await res.json();
 
           if (data.success) {
+            trackInviteSent();
             if (paymentMode === 'merchant_direct' && merchantUpiId && creatorAmount !== '0.00') {
-              showUpiModal();
+              showUpiModalWithTracking();
             } else {
               alert('Split shared via WhatsApp!');
             }

@@ -20,21 +20,21 @@ export function StepCard({ number, title, description, icon, delay = 0, isLast =
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.6, delay, ease: "easeOut" }}
-        className="relative bg-surface-container-lowest border-3 border-on-surface p-8 shadow-brutalist"
+        className="relative bg-surface-container-lowest border-3 border-on-surface p-4 md:p-8 shadow-brutalist"
         style={{ borderWidth: 3, borderColor: "#1a1c1c" }}
       >
-        <div className="flex items-start gap-6">
+        <div className="flex items-start gap-4 md:gap-6">
           <div className="flex-shrink-0">
-            <div className="w-16 h-16 bg-primary-container border-3 border-on-surface flex items-center justify-center font-headline text-3xl font-bold text-on-surface shadow-brutalist" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-primary-container border-3 border-on-surface flex items-center justify-center font-headline text-2xl md:text-3xl font-bold text-on-surface shadow-brutalist" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
               {number}
             </div>
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="text-primary-container">{icon}</div>
-              <h3 className="font-headline text-headline-md uppercase tracking-tight">{title}</h3>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+              <div className="text-primary-container flex-shrink-0">{icon}</div>
+              <h3 className="font-headline text-headline-md uppercase tracking-tight break-words">{title}</h3>
             </div>
-            <p className="font-body text-body-lg text-on-surface-variant leading-relaxed">{description}</p>
+            <p className="font-body text-body-md md:text-body-lg text-on-surface-variant leading-relaxed">{description}</p>
           </div>
         </div>
       </motion.div>

@@ -29,11 +29,11 @@ const faqItems = [
   },
   {
     question: "How long will the beta last?",
-    answer: "The beta period will last several months as we continue to add features and refine the platform. You'll get plenty of advance notice before any pricing changes.",
+    answer: "The beta period will last several weeks as we continue to add features and refine the platform. You'll get plenty of advance notice before any pricing changes.",
   },
   {
     question: "What happens after the beta ends?",
-    answer: "Early Bird members will get priority access to any future plans. We'll always have a free tier available. Your splits and data will be preserved.",
+    answer: "Early Bird members will get priority exclusive access and discounts on any future plans. Your splits and data will be preserved.",
   },
   {
     question: "Do I need to install anything?",
