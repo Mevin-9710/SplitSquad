@@ -1,17 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BlogCategory, BLOG_CATEGORIES } from "@/types/blog";
 
 interface CategoryPillsProps {
   active: string;
   onSelect: (category: string) => void;
+  categories: string[];
 }
 
-export function CategoryPills({ active, onSelect }: CategoryPillsProps) {
+export function CategoryPills({ active, onSelect, categories }: CategoryPillsProps) {
   return (
     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-      {BLOG_CATEGORIES.map((cat, i) => (
+      {categories.map((cat, i) => (
         <motion.button
           key={cat}
           initial={{ opacity: 0, x: -20 }}

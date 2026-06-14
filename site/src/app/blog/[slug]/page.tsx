@@ -50,7 +50,7 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await getPost(slug);
   if (!post) notFound();
 
-  const { frontmatter, content } = post;
+  const { frontmatter, content, headings } = post;
   const relatedPosts = getRelatedPosts(slug);
 
   const jsonLd = {
@@ -63,6 +63,7 @@ export default async function BlogPostPage({ params }: Props) {
       name: frontmatter.author,
     },
     datePublished: frontmatter.date,
+    ...(frontmatter.updatedDate && { dateModified: frontmatter.updatedDate }),
     publisher: {
       "@type": "Organization",
       name: "SplitSquad",
@@ -89,6 +90,7 @@ export default async function BlogPostPage({ params }: Props) {
         content={content}
         relatedPosts={relatedPosts}
         slug={slug}
+        headings={headings}
       />
     </>
   );

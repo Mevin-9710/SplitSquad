@@ -1,9 +1,19 @@
 import { getAllPosts, getFeaturedPost } from "@/lib/mdx";
 import { BlogPageClient } from "./BlogPageClient";
 
-export default function BlogPage() {
+interface Props {
+  searchParams?: Promise<{ tag?: string; q?: string }>;
+}
+
+export default async function BlogPage({ searchParams }: Props) {
   const allPosts = getAllPosts();
   const featured = getFeaturedPost();
 
-  return <BlogPageClient allPosts={allPosts} featured={featured} />;
+  let initialSearch = "";
+  if (searchParams) {
+    const params = await searchParams;
+    initialSearch = params?.tag || params?.q || "";
+  }
+
+  return <BlogPageClient allPosts={allPosts} featured={featured} initialSearch={initialSearch} />;
 }

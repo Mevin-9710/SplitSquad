@@ -1,12 +1,18 @@
 import fs from "fs";
 import path from "path";
 import { compileMDX } from "next-mdx-remote/rsc";
-import { BlogFrontmatter, BlogPost } from "@/types/blog";
+import { BlogFrontmatter, BlogPost, TOCHeading } from "@/types/blog";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { mdxComponents } from "../../mdx-components";
 
 const BLOG_DIR = path.join(process.cwd(), "content", "blog");
+const WORDS_PER_MINUTE = 200;
+
+function calculateReadingTime(content: string): number {
+  const words = content.trim().split(/\s+/).length;
+  return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
+}
 
 function parseFrontmatter(fileContent: string): { frontmatter: BlogFrontmatter; content: string } {
   const match = fileContent.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
@@ -35,8 +41,13 @@ function parseFrontmatter(fileContent: string): { frontmatter: BlogFrontmatter; 
     frontmatter[key] = value;
   }
 
+  const parsed = frontmatter as unknown as BlogFrontmatter;
+  if (!parsed.readingTime || parsed.readingTime === 0) {
+    parsed.readingTime = calculateReadingTime(content);
+  }
+
   return {
-    frontmatter: frontmatter as unknown as BlogFrontmatter,
+    frontmatter: parsed,
     content,
   };
 }
@@ -62,9 +73,30 @@ export function getAllPosts(): BlogPost[] {
     .sort((a, b) => new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime());
 }
 
-export function getPostsByCategory(category: string): BlogPost[] {
-  if (category === "All") return getAllPosts();
-  return getAllPosts().filter((p) => p.frontmatter.category === category);
+export function getAllTags(): string[] {
+  const posts = getAllPosts();
+  const tags = new Set<string>();
+  posts.forEach((p) => p.frontmatter.tags?.forEach((t) => tags.add(t)));
+  return Array.from(tags).sort();
+}
+
+export function getPostsByTag(tag: string): BlogPost[] {
+  return getAllPosts().filter((p) => p.frontmatter.tags?.includes(tag));
+}
+
+export function searchPosts(query: string): BlogPost[] {
+  if (!query.trim()) return getAllPosts();
+  const q = query.toLowerCase();
+  return getAllPosts().filter((p) => {
+    const fm = p.frontmatter;
+    return (
+      fm.title.toLowerCase().includes(q) ||
+      fm.excerpt.toLowerCase().includes(q) ||
+      fm.category.toLowerCase().includes(q) ||
+      fm.tags?.some((t) => t.toLowerCase().includes(q)) ||
+      fm.author.toLowerCase().includes(q)
+    );
+  });
 }
 
 export function getFeaturedPost(): BlogPost | null {
@@ -76,8 +108,13 @@ export function getRelatedPosts(currentSlug: string, limit = 3): BlogPost[] {
   const current = getPostSync(currentSlug);
   if (!current) return [];
   const all = getAllPosts().filter((p) => p.slug !== currentSlug);
+
   const sameCategory = all.filter((p) => p.frontmatter.category === current.frontmatter.category);
-  const related = sameCategory.length >= limit ? sameCategory : all;
+  const sameTags = all.filter(
+    (p) => !sameCategory.includes(p) && p.frontmatter.tags?.some((t) => current.frontmatter.tags?.includes(t))
+  );
+
+  const related = [...sameCategory, ...sameTags, ...all];
   return related.slice(0, limit);
 }
 
@@ -89,12 +126,29 @@ export function getPostSync(slug: string): BlogPost | null {
   return { frontmatter, content: "", slug };
 }
 
-export async function getPost(slug: string): Promise<{ frontmatter: BlogFrontmatter; content: React.ReactElement } | null> {
+export function extractTOC(mdxContent: string): TOCHeading[] {
+  const headings: TOCHeading[] = [];
+  const regex = /^(#{2,3})\s+(.+)$/gm;
+  let match;
+  while ((match = regex.exec(mdxContent)) !== null) {
+    const level = match[1].length;
+    const text = match[2].trim();
+    const id = text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+    headings.push({ id, text, level });
+  }
+  return headings;
+}
+
+export async function getPost(slug: string): Promise<{ frontmatter: BlogFrontmatter; content: React.ReactElement; headings: TOCHeading[] } | null> {
   const filePath = path.join(BLOG_DIR, `${slug}.mdx`);
   if (!fs.existsSync(filePath)) return null;
 
   const fileContent = fs.readFileSync(filePath, "utf8");
   const { frontmatter, content } = parseFrontmatter(fileContent);
+  const headings = extractTOC(content);
 
   const { content: compiledContent } = await compileMDX({
     source: content,
@@ -108,5 +162,5 @@ export async function getPost(slug: string): Promise<{ frontmatter: BlogFrontmat
     components: mdxComponents,
   });
 
-  return { frontmatter, content: compiledContent };
+  return { frontmatter, content: compiledContent, headings };
 }

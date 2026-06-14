@@ -9,10 +9,12 @@ export interface BlogFrontmatter {
   readingTime: number;
   coverColor?: string;
   coverPattern?: string;
+  coverImage?: string;
   seoTitle: string;
   seoDescription: string;
   canonicalSlug?: string;
   featured?: boolean;
+  updatedDate?: string;
 }
 
 export interface BlogPost {
@@ -21,16 +23,10 @@ export interface BlogPost {
   slug: string;
 }
 
-export const BLOG_CATEGORIES = [
-  "All",
-  "Expense Splitting",
-  "Group Travel",
-  "Roommates & Rent",
-  "College & Student Life",
-  "Couple & Family Finances",
-  "Productivity & Money Habits",
-  "SplitSquad Updates",
-  "Comparisons & Alternatives",
-] as const;
+export interface TOCHeading {
+  id: string;
+  text: string;
+  level: number;
+}
 
-export type BlogCategory = (typeof BLOG_CATEGORIES)[number];
+

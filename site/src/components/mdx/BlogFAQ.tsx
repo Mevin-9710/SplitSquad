@@ -14,6 +14,23 @@ interface BlogFAQProps {
   title?: string;
 }
 
+function renderStringWithLinks(text: string) {
+  const parts = text.split(/(\[.*?\]\(.*?\))/g);
+  return parts.map((part, i) => {
+    const match = part.match(/^\[(.*?)\]\((.*?)\)$/);
+    if (match) {
+      const [, linkText, href] = match;
+      const cleanText = linkText.replace(/\*\*/g, "");
+      return (
+        <a key={i} href={href} className="font-bold underline decoration-primary-container/50 hover:decoration-primary-container">
+          {cleanText}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 export function BlogFAQ({ items, title }: BlogFAQProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -60,7 +77,7 @@ export function BlogFAQ({ items, title }: BlogFAQProps) {
                   className="overflow-hidden"
                 >
                   <div className="px-4 pb-4 border-t-2 border-on-surface/10 pt-3">
-                    <p className="font-body text-body-md text-on-surface-variant">{item.a}</p>
+                    <p className="font-body text-body-md text-on-surface-variant">{renderStringWithLinks(item.a)}</p>
                   </div>
                 </motion.div>
               )}

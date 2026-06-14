@@ -1,5 +1,7 @@
 import { MDXComponents } from "mdx/types";
-import { ReactNode } from "react";
+import { ReactNode, ThHTMLAttributes, TdHTMLAttributes } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { AnimatedCounter } from "@/components/mdx/AnimatedCounter";
 import { InteractiveComparison } from "@/components/mdx/InteractiveComparison";
 import { AnimatedStatCard } from "@/components/mdx/AnimatedStatCard";
@@ -8,25 +10,58 @@ import { MiniCalculator } from "@/components/mdx/MiniCalculator";
 import { HighlightBox } from "@/components/mdx/HighlightBox";
 import { HoverRevealCard } from "@/components/mdx/HoverRevealCard";
 import { BlogFAQ } from "@/components/mdx/BlogFAQ";
+import { CodeBlock } from "@/components/mdx/CodeBlock";
+import { SideHustleCalculator } from "@/components/mdx/SideHustleCalculator";
+import { PortfolioCareerQuiz } from "@/components/mdx/PortfolioCareerQuiz";
+import { RentSplitCalculator } from "@/components/mdx/RentSplitCalculator";
+import { ExpenseSplitSimulator } from "@/components/mdx/ExpenseSplitSimulator";
+import { SalaryGapCalculator } from "@/components/mdx/SalaryGapCalculator";
+import { SkillDemandChecker } from "@/components/mdx/SkillDemandChecker";
+import { SocialHealthScore } from "@/components/mdx/SocialHealthScore";
+import { ReconnectChallenge } from "@/components/mdx/ReconnectChallenge";
+import { StudentBudgetTool } from "@/components/mdx/StudentBudgetTool";
+import { MessExpenseSplitter } from "@/components/mdx/MessExpenseSplitter";
+import { ComparisonTimeCalculator } from "@/components/mdx/ComparisonTimeCalculator";
+import { WhoseLifeQuiz } from "@/components/mdx/WhoseLifeQuiz";
+import { LinkIcon } from "lucide-react";
 
-function H2({ children, ...props }: { children?: ReactNode }) {
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-");
+}
+
+function H2({ children, id, ...props }: { children?: ReactNode; id?: string }) {
+  const slug = id || (typeof children === "string" ? slugify(children) : "");
   return (
     <h2
-      className="font-headline text-3xl md:text-4xl uppercase tracking-tighter leading-tight mt-16 mb-6 text-on-surface border-b-2 border-on-surface/10 pb-3"
-      {...props}
+      id={slug}
+      className="font-headline text-3xl md:text-4xl uppercase tracking-tighter leading-tight mt-16 mb-6 text-on-surface border-b-2 border-on-surface/10 pb-3 group"
     >
-      {children}
+      <Link href={`#${slug}`} className="inline-flex items-center gap-2 group">
+        {children}
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <LinkIcon className="w-5 h-5 text-primary-container" />
+        </span>
+      </Link>
     </h2>
   );
 }
 
-function H3({ children, ...props }: { children?: ReactNode }) {
+function H3({ children, id, ...props }: { children?: ReactNode; id?: string }) {
+  const slug = id || (typeof children === "string" ? slugify(children) : "");
   return (
     <h3
-      className="font-headline text-2xl md:text-3xl uppercase tracking-tight leading-tight mt-12 mb-4 text-on-surface"
-      {...props}
+      id={slug}
+      className="font-headline text-2xl md:text-3xl uppercase tracking-tight leading-tight mt-12 mb-4 text-on-surface group"
     >
-      {children}
+      <Link href={`#${slug}`} className="inline-flex items-center gap-2 group">
+        {children}
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <LinkIcon className="w-4 h-4 text-primary-container" />
+        </span>
+      </Link>
     </h3>
   );
 }
@@ -100,15 +135,71 @@ function Code({ children, ...props }: { children?: ReactNode }) {
   );
 }
 
+function Table({ children, ...props }: { children?: ReactNode }) {
+  return (
+    <div className="overflow-x-auto mb-8 border-3 border-on-surface shadow-brutalist" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
+      <table className="w-full border-collapse font-body text-body-md" {...props}>
+        {children}
+      </table>
+    </div>
+  );
+}
+
+function Thead({ children, ...props }: { children?: ReactNode }) {
+  return (
+    <thead className="bg-primary-container/20 border-b-3 border-on-surface" style={{ borderBottomWidth: 3, borderColor: "#1a1c1c" }}>
+      {children}
+    </thead>
+  );
+}
+
+function Th({ children, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <th className="font-headline text-sm uppercase tracking-tight text-left px-4 py-3 text-on-surface" {...props}>
+      {children}
+    </th>
+  );
+}
+
+function Td({ children, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <td className="px-4 py-3 text-on-surface-variant border-b border-on-surface/10" {...props}>
+      {children}
+    </td>
+  );
+}
+
+function Img({ src, alt, title }: { src?: string; alt?: string; title?: string }) {
+  if (!src) return null;
+  return (
+    <figure className="my-8 border-3 border-on-surface shadow-brutalist overflow-hidden" style={{ borderWidth: 3, borderColor: "#1a1c1c" }}>
+      <Image
+        src={src}
+        alt={alt || ""}
+        width={1200}
+        height={675}
+        className="w-full object-cover"
+      />
+      {title && (
+        <figcaption className="font-mono text-[10px] uppercase text-center text-on-surface-variant py-2 px-4 bg-surface-container border-t-2 border-on-surface/10">
+          {title}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
 function Pre({ children, ...props }: { children?: ReactNode }) {
   return (
-    <pre
-      className="bg-on-surface text-surface p-6 border-3 border-on-surface shadow-brutalist overflow-x-auto mb-8 font-mono text-sm leading-relaxed"
-      style={{ borderWidth: 3, borderColor: "#1a1c1c" }}
-      {...props}
-    >
-      {children}
-    </pre>
+    <CodeBlock>
+      <pre
+        className="bg-on-surface text-surface p-6 border-3 border-on-surface shadow-brutalist overflow-x-auto mb-8 font-mono text-sm leading-relaxed"
+        style={{ borderWidth: 3, borderColor: "#1a1c1c" }}
+        {...props}
+      >
+        {children}
+      </pre>
+    </CodeBlock>
   );
 }
 
@@ -125,6 +216,11 @@ export const mdxComponents: MDXComponents = {
   hr: Hr,
   code: Code,
   pre: Pre,
+  table: Table,
+  thead: Thead,
+  th: Th,
+  td: Td,
+  img: Img,
   AnimatedCounter,
   InteractiveComparison,
   AnimatedStatCard,
@@ -133,4 +229,16 @@ export const mdxComponents: MDXComponents = {
   HighlightBox,
   HoverRevealCard,
   BlogFAQ,
+  SideHustleCalculator,
+  PortfolioCareerQuiz,
+  RentSplitCalculator,
+  ExpenseSplitSimulator,
+  SalaryGapCalculator,
+  SkillDemandChecker,
+  SocialHealthScore,
+  ReconnectChallenge,
+  StudentBudgetTool,
+  MessExpenseSplitter,
+  ComparisonTimeCalculator,
+  WhoseLifeQuiz,
 };
