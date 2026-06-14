@@ -32,7 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/pricing`,
       lastModified: fileLastModified("pricing/page.tsx"),
-      changeFrequency: "monthly",
+      changeFrequency: "weekly",
       priority: 0.8,
     },
     {
@@ -62,13 +62,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/splitwise-alternative`,
       lastModified: fileLastModified("splitwise-alternative/page.tsx"),
-      changeFrequency: "monthly",
+      changeFrequency: "weekly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/upi-expense-splitting`,
       lastModified: fileLastModified("upi-expense-splitting/page.tsx"),
-      changeFrequency: "monthly",
+      changeFrequency: "weekly",
       priority: 0.8,
     },
   ];

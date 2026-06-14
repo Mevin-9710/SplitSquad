@@ -1,8 +1,8 @@
 "use client";
 
-import { motion, HTMLMotionProps } from "framer-motion";
-import Link from "next/link";
+import { motion } from "framer-motion";
 import { ReactNode } from "react";
+import { trackClick } from "@/lib/analytics";
 
 interface BrutalistButtonProps {
   children: ReactNode;
@@ -12,6 +12,7 @@ interface BrutalistButtonProps {
   onClick?: () => void;
   className?: string;
   icon?: ReactNode;
+  eventLabel?: string;
 }
 
 const variants = {
@@ -35,6 +36,7 @@ export function BrutalistButton({
   onClick,
   className = "",
   icon,
+  eventLabel,
 }: BrutalistButtonProps) {
   const baseClasses = `inline-flex items-center justify-center gap-2 uppercase font-bold tracking-wide transition-all duration-100 active:translate-x-1 active:translate-y-1 active:shadow-none ${variants[variant]} ${sizes[size]} ${className}`;
 
@@ -45,25 +47,17 @@ export function BrutalistButton({
     </>
   );
 
-  if (href) {
-    return (
-      <motion.button
-        whileHover={{ scale: 1.02, x: -2, y: -2 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => window.location.href = href}
-        className={baseClasses}
-        style={{ borderWidth: variant === "ghost" ? 2 : 3, borderColor: "#1a1c1c" }}
-      >
-        {content}
-      </motion.button>
-    );
-  }
+  const handleClick = () => {
+    if (eventLabel) trackClick(eventLabel, "cta");
+    if (href) window.location.href = href;
+    onClick?.();
+  };
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02, x: -2, y: -2 }}
+      whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      onClick={onClick}
+      onClick={handleClick}
       className={baseClasses}
       style={{ borderWidth: variant === "ghost" ? 2 : 3, borderColor: "#1a1c1c" }}
     >

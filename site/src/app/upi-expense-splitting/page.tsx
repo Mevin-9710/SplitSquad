@@ -58,9 +58,18 @@ const faqItems = [
   },
 ];
 
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "UPI Expense Splitting — SplitSquad",
+  description: "Split UPI payments among your group in seconds. Scan a QR, split the bill, and send verification links via WhatsApp.",
+  url: "https://splitsquad.qzz.io/upi-expense-splitting",
+};
+
 export default function UpiExpenseSplittingPage() {
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
         <AnimatedGrid />
         <div className="relative max-w-4xl mx-auto px-4 md:px-8 text-center">

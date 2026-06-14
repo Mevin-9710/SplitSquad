@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 export function NewsletterSignup() {
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ export function NewsletterSignup() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+    trackEvent("newsletter_signup", { email });
     setStatus("success");
     setEmail("");
     setTimeout(() => setStatus("idle"), 3000);

@@ -48,9 +48,18 @@ const faqItems = [
   },
 ];
 
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "Splitwise Alternative — SplitSquad",
+  description: "The modern Splitwise alternative built for India. UPI-first, WhatsApp-native, with real payment verification. No more fake screenshots.",
+  url: "https://splitsquad.qzz.io/splitwise-alternative",
+};
+
 export default function SplitwiseAlternativePage() {
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
         <AnimatedGrid />
         <div className="relative max-w-4xl mx-auto px-4 md:px-8 text-center">

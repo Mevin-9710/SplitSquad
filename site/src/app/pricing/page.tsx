@@ -45,9 +45,18 @@ const faqItems = [
   },
 ];
 
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "Pricing — SplitSquad",
+  description: "SplitSquad is free during beta. Full access to all features, no credit card needed. Join the Early Bird plan today.",
+  url: "https://splitsquad.qzz.io/pricing",
+};
+
 export default function PricingPage() {
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
         <AnimatedGrid />
         <div className="relative max-w-5xl mx-auto px-4 md:px-8 text-center">

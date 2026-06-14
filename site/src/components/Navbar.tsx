@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowUpRight } from "lucide-react";
+import { trackClick } from "@/lib/analytics";
 
 const navLinks = [
   { label: "Features", href: "/features" },
@@ -18,7 +19,7 @@ export function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -56,6 +57,7 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
+              onClick={() => trackClick(`nav-${link.label.toLowerCase()}`)}
               className="font-mono text-sm uppercase text-on-surface-variant hover:text-on-surface transition-colors relative group"
             >
               {link.label}

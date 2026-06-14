@@ -1,18 +1,42 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useLenis } from "./lenis-provider";
 import Script from "next/script";
+import { CookieConsent } from "@/components/CookieConsent";
 
 const gtmId = process.env.NEXT_PUBLIC_GTM_CONTAINER_ID || null;
 const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || null;
 
 export function Providers({ children }: { children: ReactNode }) {
   useLenis();
+  const [consent, setConsent] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("splitsquad-cookie-consent");
+      if (stored === "accepted") setConsent(true);
+    } catch { /* localStorage unavailable */ }
+  }, []);
 
   return (
     <>
-      {gtmId && (
+      <Script
+        id="gtag-consent-default"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('consent', 'default', {
+              analytics_storage: 'denied',
+              ad_storage: 'denied',
+            });
+          `,
+        }}
+      />
+
+      {gtmId && consent && (
         <>
           <Script
             id="gtm-script"
@@ -32,7 +56,7 @@ export function Providers({ children }: { children: ReactNode }) {
         </>
       )}
 
-      {ga4Id && (
+      {ga4Id && consent && (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}
@@ -46,7 +70,10 @@ export function Providers({ children }: { children: ReactNode }) {
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', '${ga4Id}');
+                gtag('config', '${ga4Id}', {
+                  analytics_storage: 'granted',
+                  ad_storage: 'denied',
+                });
               `,
             }}
           />
@@ -54,6 +81,7 @@ export function Providers({ children }: { children: ReactNode }) {
       )}
 
       {children}
+      <CookieConsent />
     </>
   );
 }

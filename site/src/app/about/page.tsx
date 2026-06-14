@@ -36,9 +36,18 @@ const audiences = [
   "Small teams",
 ];
 
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "About — SplitSquad",
+  description: "Built for groups. Designed for real life. SplitSquad makes splitting expenses, tracking payments, and settling up effortless.",
+  url: "https://splitsquad.qzz.io/about",
+};
+
 export default function AboutPage() {
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       {/* Hero */}
       <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
         <AnimatedGrid />

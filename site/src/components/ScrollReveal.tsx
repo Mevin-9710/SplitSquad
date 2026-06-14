@@ -13,6 +13,16 @@ interface ScrollRevealProps {
   once?: boolean;
 }
 
+const variants = {
+  up: (d: number) => ({ hidden: { y: d, opacity: 0 }, visible: { y: 0, opacity: 1 } }),
+  down: (d: number) => ({ hidden: { y: -d, opacity: 0 }, visible: { y: 0, opacity: 1 } }),
+  left: (d: number) => ({ hidden: { x: d, opacity: 0 }, visible: { x: 0, opacity: 1 } }),
+  right: (d: number) => ({ hidden: { x: -d, opacity: 0 }, visible: { x: 0, opacity: 1 } }),
+  none: () => ({ hidden: { opacity: 0 }, visible: { opacity: 1 } }),
+};
+
+const easeOut: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
+
 export function ScrollReveal({
   children,
   delay = 0,
@@ -23,26 +33,18 @@ export function ScrollReveal({
   once = true,
 }: ScrollRevealProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once, margin: "-100px" });
-
-  const getInitial = () => {
-    switch (direction) {
-      case "up": return { y: distance, opacity: 0 };
-      case "down": return { y: -distance, opacity: 0 };
-      case "left": return { x: distance, opacity: 0 };
-      case "right": return { x: -distance, opacity: 0 };
-      case "none": return { opacity: 0 };
-      default: return { y: distance, opacity: 0 };
-    }
-  };
+  const isInView = useInView(ref, { once, margin: "-60px" });
+  const v = variants[direction](distance);
 
   return (
     <motion.div
       ref={ref}
-      initial={getInitial()}
-      animate={isInView ? { y: 0, x: 0, opacity: 1 } : getInitial()}
-      transition={{ duration, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      variants={v}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      transition={{ duration, delay, ease: easeOut }}
       className={className}
+      style={{ willChange: "transform, opacity" }}
     >
       {children}
     </motion.div>

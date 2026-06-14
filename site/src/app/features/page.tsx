@@ -25,9 +25,18 @@ function MockSplitRow({ name, amount, color }: { name: string; amount: string; c
   );
 }
 
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "Features — SplitSquad",
+  description: "Split bills the way your squad wants. Smart splits, UPI-first flow, payment verification, WhatsApp reminders, and more.",
+  url: "https://splitsquad.qzz.io/features",
+};
+
 export default function FeaturesPage() {
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
         <AnimatedGrid />
         <div className="relative max-w-4xl mx-auto px-4 md:px-8 text-center">
